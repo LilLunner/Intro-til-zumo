@@ -40,7 +40,7 @@ float toDistance(float y)
 
 float speed(float x)
 {
-    float hastighet = x * ( 1000/speedCheck);
+    float hastighet = x * (1000/speedCheck);
     return hastighet;
 }
 void screen1(){
@@ -83,8 +83,8 @@ void setup()
 void loop()
 {
     Oled();
-    motors.setSpeeds(200, 200);
-    // distance();
+    motors.setSpeeds(-50, 100);
+    distance();
     if ((millis() - currentMillis) >= speedCheck)
     {
         float d = distance();
