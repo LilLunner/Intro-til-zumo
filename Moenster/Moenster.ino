@@ -17,13 +17,14 @@ void circle() {
 }
 
 void zigzag() {
-    if (millis()-zigzagMillis>=2500) {
+    if (millis()-zigzagMillis>=2300) {
         motors.setSpeeds(100,200);
     }
     else motors.setSpeeds(200,100);
     
-    if (millis()-zigzagMillis>=5000) {
+    if (millis()-zigzagMillis>=4600) {
         zigzagMillis=millis();
+        motors.setSpeeds(200,100);
     }
 }
 
