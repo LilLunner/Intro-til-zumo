@@ -2,24 +2,36 @@
 #include <Zumo32U4.h>
 
 Zumo32U4Motors motors;
-Zumo32U4ButtonA button;
+Zumo32U4ButtonA buttonA;
+Zumo32U4ButtonB buttonB;
 Zumo32U4OLED oled;
-int circleMillis;
+int circleMillis, zigzagMillis;
 
 void circle() {
     motors.setSpeeds(200,100);
     if (millis()-circleMillis>=5000) {
         motors.setSpeeds(0,0);
-        button.waitForButton();
+        buttonA.waitForButton();
         circleMillis=millis(); //last 2 lines can be replaced with break in a switch case
     }
 }
 
+void zigzag() {
+    if (millis()-zigzagMillis>=2500) {
+        motors.setSpeeds(100,200);
+    }
+    else motors.setSpeeds(200,100);
+    
+    if (millis()-zigzagMillis>=5000) {
+        zigzagMillis=millis();
+    }
+}
+
 void setup() {
-    button.waitForButton();
-    circleMillis=millis();
+    buttonB.waitForButton();
+    zigzagMillis=millis();
 }
 
 void loop() {
-    circle();
+    zigzag();
 }
