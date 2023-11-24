@@ -54,7 +54,8 @@ void screen1(){
 void screen2(){
     display.clear();
     display.gotoXY(0,0);
-    display.print(F("Distance: "));
+    display.println(F("Distance:"));
+    display.gotoXY(0,1);
     display.println(toDistance(distance()));
 }
 
