@@ -1,69 +1,70 @@
 #include <Zumo32U4.h>
-#include <Zumo32U4Encoders.h>
-#include <movingAvg.h>  
+#include <Zumo32U4Encoders.h> 
 
 Zumo32U4Encoders encoder;
 Zumo32U4Motors motors;
 Zumo32U4OLED display;
 
-float SpeedArray[60];
-float q, i, totdis;
+int SpeedArray[60];
+float totdis;
 bool A = 1;
-unsigned long currentMillis, sMillis, t;
-const int speedCheck = 250;
+unsigned long currentMillis, sMillis;
 const int O = 12;
-int arrayIndex;
+int arrayIndex=-1;
+int screenCount=1;
+int maxSpeed, total, Over70Counter;
+int insaneSpeed=280;
 
-float distance()
+int distance()
 {
     int L = encoder.getCountsAndResetLeft();
-    int R = encoder.getCountsAndResetRight()
+    int R = encoder.getCountsAndResetRight();
 
-    float dis = (L+R)/(12*75)*;
+    int dis = (L+R)/2;///(12*75);
     return dis;
 }
 
-float totalDistance(distance) {
-    totdis=totdis+distance;
+int totalDistance()
+{
+    totdis=totdis+SpeedArray[arrayIndex];
     return totdis;
 }
 
-void SpeedPerMinute() {
-    SpeedArray[arrayIndex] = distance();
+void SpeedPerSecond() {
     arrayIndex++;
-    if (arrayIndex=>60) arrayIndex=0;
+    total=total-SpeedArray[arrayIndex];
+    if (SpeedArray[arrayIndex]>= insaneSpeed) Over70Counter--;
+    SpeedArray[arrayIndex] = distance();
+    if (SpeedArray[arrayIndex]>= insaneSpeed) Over70Counter++;
+    total=total+SpeedArray[arrayIndex];
 }
 
-float averageSpeed(SpeedArray) {
-    float total;
-    for (int i; i<=59; i++) {
-        total=total+SpeedArray[i];
-    }
-    float average=total/60;
+int averageSpeed(int x) {
+    int average=x/60;
     return average;
 }
 
-
-float speed(float x)
+int topSpeed(int x)
 {
-    float hastighet = x * (1000/speedCheck);
-    return hastighet;
+ if (maxSpeed<x) maxSpeed=x;
+ return maxSpeed;
 }
+
 void screen1(){
     display.clear();
     display.gotoXY(0,0);
-    display.print(F("Speed: "));  
+    display.print(F("Spd: "));  
     display.println(SpeedArray[arrayIndex]);
     display.gotoXY(0,1);
-    display.print("Distance; ");
-    display.print(totalDistance(distance()));
+    display.print("Dis; ");
+    display.print(totalDistance());
 }
 
 void screen2(){
-    display.clear();
+    /*display.clear();
     display.gotoXY(0,0);
     display.print(F("Distance: "));
-    display.println(toDistance(distance()));
+    display.println(toDistance(distance()));*/
 }
 
 void Oled() {
@@ -89,6 +90,12 @@ void setup()
 
 void loop()
 {
-    Oled();
-    motors.setSpeeds(100,100);
+    /*if (millis()-currentMillis>=1000)
+    {
+    SpeedPerSecond();
+    motors.setSpeeds(400,400);
+    screen1();
+    currentMillis=millis();
+    if (arrayIndex>=59) arrayIndex=-1;
+    }*/
 }
