@@ -4,8 +4,27 @@
 Zumo32U4Motors motors;
 Zumo32U4ButtonA buttonA;
 Zumo32U4ButtonB buttonB;
-Zumo32U4OLED oled;
+Zumo32U4OLED display;
 int circleMillis, zigzagMillis;
+
+void turn90()
+{
+    bool a = true;
+    while (a == true)
+    {
+        drive(-100, 100);
+        while ((int32_t)turnAngle < turnAngle90)
+        {
+            turnSensorUpdate();
+            display.gotoXY(0, 0);
+            display.print((((int32_t)turnAngle >> 16) * 360) >> 16);
+            display.print(F("   "));
+        }
+
+        break;
+    }
+    a = false;
+}
 
 void circle() {
     motors.setSpeeds(200,100);
