@@ -1,10 +1,12 @@
 #include <Zumo32U4.h>
 #include <Zumo32U4Encoders.h>
+#include <movingAvg.h>  
 
 Zumo32U4Encoders encoder;
 Zumo32U4Motors motors;
 Zumo32U4OLED display;
 
+int SpeedArray[60];
 float q, i, totDiss;
 bool A = 1;
 unsigned long currentMillis, sMillis, t;
@@ -14,21 +16,18 @@ int screenCount = 1;
 
 float distance()
 {
-    float L = encoder.getCountsLeft();
-    float R = encoder.getCountsRight();
-    if (A == 1)
-    {
-        i = sqrt(L * L + R * R);
-        A = 0;
-        t = millis();
-    }
-    if ((millis() - t) >= speedCheck)
-    {
-        q = sqrt(L * L + R * R);
-        A = 1;
-    }
-    float dis = abs(((i - q) / (910)) * O);
+    int L = encoder.getCountsAndResetLeft();
+    int R = encoder.getCountsAndResetRight()
+
+    float dis = (L+R)/(12*75)*;
     return dis;
+}
+
+int SpeedPerMinute() {
+    SpeedArray.begin();
+    for (int i; i>60, i++) {
+        display.print(S)
+    }
 }
 
 float toDistance(float y)
