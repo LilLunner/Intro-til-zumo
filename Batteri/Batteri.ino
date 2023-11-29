@@ -1,8 +1,9 @@
 int totdiss=10;
 int charging_cycles;
 
-int battery(totdiss) {
-    int power = 100-totdiss*4;
+int batteryDrain(totdiss) {
+    int power = 100
+    int drain = 
     return power;
 }
 
@@ -13,7 +14,7 @@ int charge() {
 }
 
 int health(power, charging_cycles) {
-    
+
 }
 
 void setup() {

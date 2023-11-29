@@ -1,9 +1,10 @@
 #include <Zumo32U4.h>
-#include <Zumo32U4Encoders.h> 
+#include <EEPROM.h>
 
 Zumo32U4Encoders encoder;
 Zumo32U4Motors motors;
 Zumo32U4OLED display;
+Zumo32U4Buzzer buzzer;
 
 int SpeedArray[60];
 float totdis;
@@ -12,8 +13,9 @@ unsigned long currentMillis, sMillis;
 const int O = 12;
 int arrayIndex=-1;
 int screenCount=1;
-int maxSpeed, total, Over70Counter;
+int maxSpeed, total, Over70Counter, charges;
 int insaneSpeed=280;
+int power=100;
 
 int distance()
 {
@@ -50,7 +52,7 @@ int topSpeed(int x)
  return maxSpeed;
 }
 
-void screen1(){
+void screenSpeed(){
     display.clear();
     display.gotoXY(0,0);
     display.print(F("Spd: "));  
@@ -60,16 +62,25 @@ void screen1(){
     display.print(totalDistance());
 }
 
-void screen2(){
-    /*display.clear();
+void screenBattery(){
+    display.clear();
     display.gotoXY(0,0);
-    display.print(F("Distance: "));
-    display.println(toDistance(distance()));*/
+    display.print(F("battery_level: "));
+    //display.println(power-batteryDrain());
+    display.gotoXY(0,1);
+    display.print("charging_cycles: ");
+    display.println(charges);
 }
 
+void screenCharge() {
+    display.clear();
+
+}
+
+
 void Oled() {
-    const int screenTime = 5000;
-    if ((millis()-sMillis)>= screenTime){
+    const int screenTime = 10000;
+    if ((millis()-sMillis)>= 5000){
         if (screenCount == 1){
             screen1();
         }
@@ -82,10 +93,51 @@ void Oled() {
     }
 }
 
+int batteryDrain(int x) {
+    int drain = 4*x;
+    return drain;
+}
+
+
+int reverseCharge(int x) {
+    int revCharge=2*x;
+    return revCharge;
+}
+
+int emergencyCharge(int x) {
+        int batteryGain=10*x;
+        return batteryGain;
+}
+
+void alarm10() {
+    buzzer.playFrequency(440, 200, 15);
+    display.clear();
+    display.print("Battery low!");
+    ledYellow(1);
+    delay(1000);
+    ledYellow(0);
+    delay(1000);
+}
+
+void alarm5() {
+    buzzer.playFrequency(440, 200, 15);
+    display.clear();
+    display.print("Battery low!");
+    ledRed(1);
+    delay(1000);
+    ledRed(0);
+    delay(1000);
+}
+
+int BatteryHealth() {
+    
+}
+
 void setup()
 {
     Serial.begin(9600);
     display.clear();
+    battery_health=EEprom.read(0);
 }
 
 void loop()
@@ -98,4 +150,5 @@ void loop()
     currentMillis=millis();
     if (arrayIndex>=59) arrayIndex=-1;
     }*/
+    alarm10();
 }
