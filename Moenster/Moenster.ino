@@ -5,25 +5,44 @@ Zumo32U4Motors motors;
 Zumo32U4ButtonA buttonA;
 Zumo32U4ButtonB buttonB;
 Zumo32U4OLED display;
+Zumo32U4IMU imu;
+
+#include "TurnSensor.h"
+
 int circleMillis, zigzagMillis;
 
-void turn90()
+void turn90(int x)
 {
-    bool a = true;
-    while (a == true)
+    int i = 1;
+    while (i <= x)
     {
-        drive(-100, 100);
-        while ((int32_t)turnAngle < turnAngle90)
+        motors.setSpeeds(-100, 100);
+        while ((int32_t)turnAngle < (turnAngle1*88))
         {
             turnSensorUpdate();
-            display.gotoXY(0, 0);
-            display.print((((int32_t)turnAngle >> 16) * 360) >> 16);
-            display.print(F("   "));
         }
-
-        break;
+        turnSensorReset();
+        motors.setSpeeds(0, 0);
+        i++;
     }
-    a = false;
+}
+
+void square()
+{
+    unsigned long time = millis();
+    static int check, prevCheck;
+    for (int i = 0; i <= 4; i)
+    {
+        motors.setSpeeds(150, 150);
+        if ((millis() - 2500) > time)
+        {
+            motors.setSpeeds(0, 0);
+            delay(100);
+            turn90(1);
+            time = millis();
+            i++;
+        }
+    }
 }
 
 void circle() {
