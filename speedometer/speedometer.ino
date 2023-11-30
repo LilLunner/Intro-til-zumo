@@ -17,6 +17,8 @@ int total, Over70Counter, chargesCounter, fiveLevelCounter, v;
 int insaneSpeed=280;
 int power=100;
 int battery_health=EEPROM.read(0);
+int level0 = 5;
+int level1 = 20;
 
 int distance()
 {
@@ -131,11 +133,11 @@ int BatteryHealth() {
 }
 
 void batteryService() {
-
+    battery_health=battery_health+20;
 }
 
 void batteryChange() {
-
+    battery_health=100;
 }
 
 void main() {
@@ -163,9 +165,8 @@ void main() {
     
     case 1:
         screenBattery();
-        if (sMillis-millis()>=1000) {
+        if (millis()-sMillis>=1000) {
             v=0;
-            sMillis=millis();
         }
     
     case 2:
