@@ -6,7 +6,7 @@ Zumo32U4Motors motors;
 Zumo32U4OLED display;
 Zumo32U4Buzzer buzzer;
 
-int SpeedArray[60];
+float SpeedArray[60];
 float totdis;
 bool A = 1;
 unsigned long currentMillis, sMillis, cMillis, aMillis;
@@ -20,16 +20,16 @@ int battery_health=EEPROM.read(0);
 int level0 = 5;
 int level1 = 20;
 
-int distance()
+float distance()
 {
     int L = encoder.getCountsAndResetLeft();
     int R = encoder.getCountsAndResetRight();
 
-    int dis = (L+R)/2;///(12*75);
+    float dis = (L+R)*6/(910); //cm
     return dis;
 }
 
-int totalDistance()
+float totalDistance()
 {
     totdis=totdis+SpeedArray[arrayIndex];
     return totdis;
@@ -44,14 +44,14 @@ void SpeedPerSecond() {
     total=total+SpeedArray[arrayIndex];
 }
 
-int averageSpeed(int x) {
-    int average=x/60;
+float averageSpeed(float x) {
+    float average=x/60;
     return average;
 }
 
-int topSpeed()
+float topSpeed()
 {
-    int maxSpeed;
+    float maxSpeed;
     for (int i; i>=59; i++) {
         if (SpeedArray[i]>maxSpeed) maxSpeed=SpeedArray[i];
     }
@@ -82,7 +82,6 @@ void screenCharge() {
     display.clear();
 
 }
-
 
 
 
@@ -140,7 +139,7 @@ void batteryChange() {
     battery_health=100;
 }
 
-void main() {
+/*void main() {
     switch (v) {
     case 0:
         screenSpeed();
@@ -190,7 +189,7 @@ void main() {
         v=0;
         
 }
-}
+}*/
 
 void setup()
 {
@@ -208,5 +207,10 @@ void loop()
     currentMillis=millis();
     if (arrayIndex>=59) arrayIndex=-1;
     }*/
-    alarm10();
+    motors.setSpeeds(400,400);
+    if (millis()-cMillis>=1000) {
+        SpeedPerSecond();
+        cMillis=millis();
+        screenSpeed();
+    }
 }
