@@ -139,7 +139,7 @@ void batteryChange() {
     battery_health=100;
 }
 
-/*void main() {
+void main() {
     switch (v) {
     case 0:
         screenSpeed();
@@ -189,7 +189,7 @@ void batteryChange() {
         v=0;
         
 }
-}*/
+}
 
 void setup()
 {
@@ -206,11 +206,12 @@ void loop()
     screen1();
     currentMillis=millis();
     if (arrayIndex>=59) arrayIndex=-1;
-    }*/
+    }
     motors.setSpeeds(400,400);
     if (millis()-cMillis>=1000) {
         SpeedPerSecond();
         cMillis=millis();
         screenSpeed();
-    }
+    }*/
+    main();
 }
