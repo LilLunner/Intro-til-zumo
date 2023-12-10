@@ -139,10 +139,11 @@ void batteryChange() {
     battery_health=100;
 }
 
-void main() {
+int main() {
     switch (v) {
     case 0:
         screenSpeed();
+        BatteryHealth();
         if (millis()-cMillis>=1000) {
             SpeedPerSecond();
             cMillis=millis();
