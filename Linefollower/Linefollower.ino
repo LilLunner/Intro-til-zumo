@@ -18,6 +18,7 @@ void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
         while ((int32_t)turnAngle < (turnAngle1 * (y))) // stopper her helt til den har truffet 90*, det virker som hva som hva som er 90 endres fra dag til dag
         {
             turnSensorUpdate();
+            lineSensors.calibrate();
         }
         turnSensorReset(); // reseter gyroskop dataen
         motors.setSpeeds(0, 0);
@@ -25,21 +26,17 @@ void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
     }
 }
 
-void lineCalibrate()
-{
-    turnDeg(4, 90);
-    lineSensors.calibrate();
-}
-
 void setup()
 {
+    Serial.begin(9600);
+    lineSensors.initFiveSensors();
     turnSensorSetup();
-    lineCalibrate();
+    turnDeg(4, 90);
 }
 
 int lineSensorRead()
 {
-    static int prevError;
+    static int prevError = 0;
     static unsigned int lineSensorVal[5];
     int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000);
     int correction = error/4+6*(error-prevError); //kilde eksempelkode
@@ -58,5 +55,4 @@ void lineFollow(int correction){
 void loop()
 {
     lineFollow(lineSensorRead());
-    //pasdlhiafhaeughå
 }
