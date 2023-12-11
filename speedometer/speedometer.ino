@@ -6,14 +6,13 @@ Zumo32U4Motors motors;
 Zumo32U4OLED display;
 Zumo32U4Buzzer buzzer;
 
-float SpeedArray[60];
-float totdis;
+float SpeedArray[60], total, totDis, maxSpeed;
 bool A = 1;
-unsigned long currentMillis, sMillis, cMillis, aMillis;
+unsigned long currentMillis, sMillis, cMillis, aMillis, mMillis;
 const int O = 12;
 int arrayIndex=-1;
 int screenCount=1;
-int total, Over70Counter, chargesCounter, fiveLevelCounter, v;
+int Over70Counter, chargesCounter, fiveLevelCounter, v;
 int insaneSpeed=280;
 int power=100;
 int battery_health=EEPROM.read(0);
@@ -29,12 +28,6 @@ float distance()
     return dis;
 }
 
-float totalDistance()
-{
-    totdis=totdis+SpeedArray[arrayIndex];
-    return totdis;
-}
-
 void SpeedPerSecond() {
     arrayIndex++;
     total=total-SpeedArray[arrayIndex];
@@ -44,18 +37,21 @@ void SpeedPerSecond() {
     total=total+SpeedArray[arrayIndex];
 }
 
+void totDistance() {
+    totDis=+SpeedArray[arrayIndex];
+}
+
 float averageSpeed(float x) {
     float average=x/60;
     return average;
 }
 
-float topSpeed()
+void topSpeed()
 {
-    float maxSpeed;
+    maxSpeed=0;
     for (int i; i>=59; i++) {
         if (SpeedArray[i]>maxSpeed) maxSpeed=SpeedArray[i];
     }
- return maxSpeed;
 }
 
 void screenSpeed(){
@@ -63,9 +59,8 @@ void screenSpeed(){
     display.gotoXY(0,0);
     display.print(F("Spd: "));  
     display.println(SpeedArray[arrayIndex]);
-    display.gotoXY(0,1);
     display.print("Dis; ");
-    display.print(totalDistance());
+    display.print(totDis);
 }
 
 void screenBattery(){
@@ -123,16 +118,16 @@ void alarm5() {
     }
 }
 
-int BatteryHealth() {
+int BatteryHealthCheck() {
     int mistake=1;
     int mistakeCheck= rand() %10;
     if (mistake==mistakeCheck) mistake=2;
-    int health=(100-chargesCounter-fiveLevelCounter-Over70Counter-averageSpeed(SpeedArray[arrayIndex])-topSpeed())/mistake;
+    int health=(100-chargesCounter-fiveLevelCounter-Over70Counter-averageSpeed(total)-topSpeed())/mistake;
     return health;
 }
 
 void batteryService() {
-    battery_health=battery_health+20;
+    battery_health=+20;
 }
 
 void batteryChange() {
@@ -143,10 +138,15 @@ int main() {
     switch (v) {
     case 0:
         screenSpeed();
-        BatteryHealth();
         if (millis()-cMillis>=1000) {
+            battery_health=BatteryHealthCheck();
             SpeedPerSecond();
+            totDistance();
             cMillis=millis();
+            if (millis()-mMillis>=60000) {
+                topSpeed();
+                mMillis=millis();
+            }
         }
         if (battery_health<level0) {
             v=6;
@@ -160,7 +160,6 @@ int main() {
         {
             v=1;
             sMillis=millis();
-            break;
         }
     
     case 1:
@@ -168,26 +167,32 @@ int main() {
         if (millis()-sMillis>=1000) {
             v=0;
         }
+        break;
     
     case 2:
         screenCharge();
         v=0;
+        break;
     
     case 3:
         alarm10();
         v=0;
+        break;
 
     case 4:
         alarm5();
         v=0;
+        break;
     
     case 5:
         batteryService();
         v=0;
+        break;
 
     case 6:
         batteryChange();
         v=0;
+        break;
         
 }
 }
@@ -196,6 +201,7 @@ void setup()
 {
     Serial.begin(9600);
     display.clear();
+    SpeedPerSecond();
 }
 
 void loop()
@@ -214,5 +220,5 @@ void loop()
         cMillis=millis();
         screenSpeed();
     }*/
-    main();
+    //main();
 }
