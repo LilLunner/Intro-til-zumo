@@ -13,7 +13,7 @@ int arrayIndex=-1;
 int over70Counter, chargesCounter, fiveLevelCounter, v, total;
 int insaneSpeed=280;
 int power=100;
-int battery_health=EEprom.read(0);
+int battery_health=EEPROM.read(0);
 int level0 = 5;
 int level1 = 20;
 
@@ -28,6 +28,7 @@ float distance()
 
 void SpeedPerSecond() {
     arrayIndex++;
+    if (arrayIndex=60) arrayIndex=0;
     total=total-SpeedArray[arrayIndex];
     if (SpeedArray[arrayIndex]>= insaneSpeed) over70Counter--;
     SpeedArray[arrayIndex] = distance();
@@ -207,6 +208,6 @@ void loop()
 {
     motors.setSpeeds(200,200);
     SpeedPerSecond();
-    (averageSpeed());
+    Serial.println(SpeedArray[arrayIndex]);
     delay(1000);
 }
