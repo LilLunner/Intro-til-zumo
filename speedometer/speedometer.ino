@@ -10,11 +10,10 @@ float SpeedArray[60], totDis, maxSpeed;
 unsigned long currentMillis, sMillis, cMillis, aMillis, mMillis;
 const int O = 12;
 int arrayIndex=-1;
-int screenCount=1;
 int over70Counter, chargesCounter, fiveLevelCounter, v, total;
 int insaneSpeed=280;
 int power=100;
-int battery_health=100;
+int battery_health=EEprom.read(0);
 int level0 = 5;
 int level1 = 20;
 
