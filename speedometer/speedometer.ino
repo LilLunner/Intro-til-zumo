@@ -6,16 +6,15 @@ Zumo32U4Motors motors;
 Zumo32U4OLED display;
 Zumo32U4Buzzer buzzer;
 
-float SpeedArray[60], total, totDis, maxSpeed;
-bool A = 1;
+float SpeedArray[60], totDis, maxSpeed;
 unsigned long currentMillis, sMillis, cMillis, aMillis, mMillis;
 const int O = 12;
 int arrayIndex=-1;
 int screenCount=1;
-int Over70Counter, chargesCounter, fiveLevelCounter, v;
+int over70Counter, chargesCounter, fiveLevelCounter, v, total;
 int insaneSpeed=280;
 int power=100;
-int battery_health=EEPROM.read(0);
+int battery_health=100;
 int level0 = 5;
 int level1 = 20;
 
@@ -31,9 +30,9 @@ float distance()
 void SpeedPerSecond() {
     arrayIndex++;
     total=total-SpeedArray[arrayIndex];
-    if (SpeedArray[arrayIndex]>= insaneSpeed) Over70Counter--;
+    if (SpeedArray[arrayIndex]>= insaneSpeed) over70Counter--;
     SpeedArray[arrayIndex] = distance();
-    if (SpeedArray[arrayIndex]>= insaneSpeed) Over70Counter++;
+    if (SpeedArray[arrayIndex]>= insaneSpeed) over70Counter++;
     total=total+SpeedArray[arrayIndex];
 }
 
@@ -41,8 +40,8 @@ void totDistance() {
     totDis=+SpeedArray[arrayIndex];
 }
 
-float averageSpeed(float x) {
-    float average=x/60;
+int averageSpeed() {
+    int average=total/60;
     return average;
 }
 
@@ -118,12 +117,12 @@ void alarm5() {
     }
 }
 
-int BatteryHealthCheck() {
+void BatteryHealthCheck() {
     int mistake=1;
-    int mistakeCheck= rand() %10;
+    int mistakeCheck=random(100);
     if (mistake==mistakeCheck) mistake=2;
-    int health=(100-chargesCounter-fiveLevelCounter-Over70Counter-averageSpeed(total)-topSpeed())/mistake;
-    return health;
+    int health=(100-chargesCounter-fiveLevelCounter-over70Counter-averageSpeed()-maxSpeed)/mistake;
+    EEPROM.write(0, battery_health);
 }
 
 void batteryService() {
@@ -134,12 +133,12 @@ void batteryChange() {
     battery_health=100;
 }
 
-int main() {
+/*int main() {
     switch (v) {
     case 0:
         screenSpeed();
         if (millis()-cMillis>=1000) {
-            battery_health=BatteryHealthCheck();
+            BatteryHealthCheck();
             SpeedPerSecond();
             totDistance();
             cMillis=millis();
@@ -160,10 +159,11 @@ int main() {
         {
             v=1;
             sMillis=millis();
+            break;
         }
     
     case 1:
-        screenBattery();
+        //screenBattery();
         if (millis()-sMillis>=1000) {
             v=0;
         }
@@ -195,13 +195,12 @@ int main() {
         break;
         
 }
-}
+}*/
 
 void setup()
 {
     Serial.begin(9600);
     display.clear();
-    SpeedPerSecond();
 }
 
 void loop()
@@ -221,4 +220,6 @@ void loop()
         screenSpeed();
     }*/
     //main();
+    motors.setSpeeds(200,200);
+    (averageSpeed());
 }
