@@ -13,8 +13,6 @@
 // This constant represents a turn of 45 degrees.
 const int32_t turnAngle45 = 0x20000000;
 
-// This constant represents a turn of 90 degrees.
-
 // This constant represents a turn of approximately 1 degree.
 const int32_t turnAngle1 = (turnAngle45 + 22) / 45;
 
@@ -100,9 +98,6 @@ void turnSensorSetup()
   display.clear();
   display.print(F("Gyro cal"));
 
-  // Turn on the yellow LED in case the display is not available.
-  ledYellow(1);
-
   // Delay to give the user time to remove their finger.
   delay(500);
 
@@ -117,28 +112,11 @@ void turnSensorSetup()
     // Add the Z axis reading to the total.
     total += imu.g.z;
   }
-  ledYellow(0);
   gyroOffset = total / 1024;
 
-  // Display the angle (in degrees from -180 to 180) until the
-  // user presses A.
   display.clear();
   turnSensorReset();
   unsigned long turnSensorTime = millis();
-  bool bull = false;
-  while (!buttonA.getSingleDebouncedRelease())
-  {
-    if (bull == false){
-      motors.setSpeeds(150, -150);
-    }
-    if ((millis()-turnSensorTime)>=1600) {
-      motors.setSpeeds(0, 0);
-      bull = true;
-    }
-    turnSensorUpdate();
-    display.gotoXY(0, 0);
-    display.print((((int32_t)turnAngle >> 16) * 360) >> 16);
-    display.print(F("   "));
-  }
+  turnSensorUpdate();
   display.clear();
 }

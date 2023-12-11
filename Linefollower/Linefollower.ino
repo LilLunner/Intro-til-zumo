@@ -12,7 +12,7 @@ int topSpeed = 200;
 void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
 {
     int i = 1;
-    while (i <= x) // ekke helt sikker på hvofor denne  er nødvendig, men funker ikke uten
+    while (i <= x) // teller antall rotasjoner
     {
         motors.setSpeeds(-100, 100);
         while ((int32_t)turnAngle < (turnAngle1 * (y))) // stopper her helt til den har truffet 90*, det virker som hva som hva som er 90 endres fra dag til dag
@@ -36,23 +36,42 @@ void setup()
 
 int lineSensorRead()
 {
-    static int prevError = 0;
-    static unsigned int lineSensorVal[5];
+    static unsigned int lineSensorVal[5]; // lager en variable med like mange indekser som det er sensorer
     int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000);
-    int correction = error/4+6*(error-prevError); //kilde eksempelkode
-    prevError = error;
-    return correction;
+    return error;
+}
+void lineFollowStandard(int pos)
+{
+    static int lSpeed;
+    static int rSpeed;
+    if (pos>0){
+        lSpeed = 150;
+        rSpeed = 50;
+    }
+    else if (pos<0)
+    {
+        lSpeed = 50;
+        rSpeed = 150;
+    }
+    else{
+        lSpeed, rSpeed = topSpeed;
+    }
+    motors.setSpeeds(lSpeed, rSpeed);
 }
 
-void lineFollow(int correction){
-    int lSpeed = topSpeed + correction;
-    int rSpeed = topSpeed - correction;
-    lSpeed = constrain(lSpeed, 0, topSpeed);
-    rSpeed = constrain(rSpeed, 0, topSpeed);
+void lineFollowPID(int pos)
+{ // tar inn posisjonen
+    static int prevPos;
+    int correction = pos / 4 + 6 * (pos - prevPos); // kilde eksempelkode
+    prevPos = pos;
+    int lSpeed = topSpeed + correction;      // farten på venstre side lik topSpeed + correction
+    int rSpeed = topSpeed - correction;      // farten på høgre side lik topspeed - correction
+    lSpeed = constrain(lSpeed, 0, topSpeed); // setter slik at verdien vil alltids være mellom 200 og 0, vil forhindre for høye hastigheter, men viktigs
+    rSpeed = constrain(rSpeed, 0, topSpeed); // hindrer at det vil fort gå fra positiv hastighet til negativ hastighet som kan skade motorene.
     motors.setSpeeds(lSpeed, rSpeed);
 }
 
 void loop()
 {
-    lineFollow(lineSensorRead());
+    lineFollowPID(lineSensorRead());
 }
