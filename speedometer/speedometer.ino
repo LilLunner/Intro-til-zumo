@@ -26,7 +26,7 @@ float distance()
     return dis;
 }
 
-void SpeedPerSecond() {
+void SpeedPerSecond() { //oppdaterer en indeks i et 60 tall langt array som måler distanse per sekund
     arrayIndex++;
     if (arrayIndex=60) arrayIndex=0;
     total=total-SpeedArray[arrayIndex];
@@ -37,7 +37,7 @@ void SpeedPerSecond() {
 }
 
 void totDistance() {
-    totDis=+SpeedArray[arrayIndex];
+    totDis=totDis+SpeedArray[arrayIndex];
 }
 
 int averageSpeed() {
@@ -54,29 +54,22 @@ void topSpeed()
 }
 
 void screenSpeed(){
-    display.clear();
     display.gotoXY(0,0);
-    display.print(F("Spd: "));  
+    display.print(F("Speed: "));  
     display.println(SpeedArray[arrayIndex]);
-    display.print("Dis; ");
+    display.gotoXY(0,1);
+    display.print("Distance; ");
     display.print(totDis);
 }
 
 void screenBattery(){
-    display.clear();
     display.gotoXY(0,0);
-    display.print(F("battery_level: "));
-    //display.println(power-batteryDrain());
+    display.print(F("Battery_Level: "));
+    display.println(battery_health);
     display.gotoXY(0,1);
-    display.print("charging_cycles: ");
+    display.print("Charging_Cycles: ");
     display.println(chargesCounter);
 }
-
-void screenCharge() {
-    display.clear();
-
-}
-
 
 
 int batteryDrain(int x) {
@@ -121,7 +114,7 @@ void BatteryHealthCheck() {
     int mistake=1;
     int mistakeCheck=random(100);
     if (mistake==mistakeCheck) mistake=2;
-    int health=(100-chargesCounter-fiveLevelCounter-over70Counter-averageSpeed()-maxSpeed)/mistake;
+    int health=(100-chargesCounter-fiveLevelCounter-over70Counter-averageSpeed()/10-maxSpeed/10)/mistake;
     EEPROM.write(0, battery_health);
 }
 
@@ -167,12 +160,8 @@ void mainFunction() {
         screenBattery();
         if (millis()-sMillis>=1000) {
             v=0;
+            display.clear();
         }
-        break;
-    
-    case 2:
-        screenCharge();
-        v=0;
         break;
     
     case 3:
@@ -186,12 +175,12 @@ void mainFunction() {
         break;
     
     case 5:
-        batteryService();
+        //batteryService();
         v=0;
         break;
 
     case 6:
-        batteryChange();
+        //batteryChange();
         v=0;
         break;
         
@@ -202,12 +191,12 @@ void setup()
 {
     Serial.begin(9600);
     display.clear();
+    display.setLayout21x8();
+
 }
 
 void loop()
 {
-    motors.setSpeeds(200,200);
-    SpeedPerSecond();
-    Serial.println(SpeedArray[arrayIndex]);
-    delay(1000);
+    motors.setSpeeds(200,100);
+    mainFunction();
 }
