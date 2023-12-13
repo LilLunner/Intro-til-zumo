@@ -40,6 +40,7 @@ int lineSensorRead()
     int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000);
     return error;
 }
+
 void lineFollowStandard(int pos)
 {
     static int lSpeed;

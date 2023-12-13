@@ -11,17 +11,17 @@ Zumo32U4IMU imu;
 
 int circleMillis, zigzagMillis;
 
-void turn90(int x)
+void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
 {
     int i = 1;
-    while (i <= x)
+    while (i <= x) // teller antall rotasjoner
     {
         motors.setSpeeds(-100, 100);
-        while ((int32_t)turnAngle < (turnAngle1*88))
+        while ((int32_t)turnAngle < (turnAngle1 * (y))) // stopper her helt til den har truffet 90*, det virker som hva som hva som er 90 endres fra dag til dag
         {
             turnSensorUpdate();
         }
-        turnSensorReset();
+        turnSensorReset(); // reseter gyroskop dataen
         motors.setSpeeds(0, 0);
         i++;
     }
@@ -38,7 +38,7 @@ void square()
         {
             motors.setSpeeds(0, 0);
             delay(100);
-            turn90(1);
+            turnDeg(1, 87);
             time = millis();
             i++;
         }
@@ -67,10 +67,11 @@ void zigzag() {
 }
 
 void setup() {
-    buttonB.waitForButton();
+    turnSensorSetup();
     zigzagMillis=millis();
 }
 
 void loop() {
-    zigzag();
+    square();
+    delay(500000);
 }
