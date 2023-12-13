@@ -73,7 +73,6 @@ void lineFollowPID(int pos)
     lSpeed = constrain(lSpeed, 0, topSpeed); // setter slik at verdien vil alltids være mellom 200 og 0, vil forhindre for høye hastigheter, men viktigs
     rSpeed = constrain(rSpeed, 0, topSpeed); // hindrer at det vil fort gå fra positiv hastighet til negativ hastighet som kan skade motorene.
     motors.setSpeeds(lSpeed, rSpeed);
-    if ()
 }
 
 void pressA() {
