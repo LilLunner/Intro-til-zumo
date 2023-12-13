@@ -28,9 +28,8 @@ void rnd(int pposArray[])
     static unsigned long proxTime;
     if (sumProx() != 0)
     {
-        if (millis() - proxTime >= 2400 / sumProx())
+        if (millis() - proxTime >= 1200 / pow(sumProx(),2))
         {
-            Serial.println("test");
             pposArray[0] = random(0, 20);
             pposArray[1] = random(0, 7);
             proxTime = millis();
@@ -49,22 +48,26 @@ void showProxA()
     static int posArray[2];
     rnd(posArray);
     display.gotoXY(posArray[0], posArray[1]);
-    display.print('A');
-    /*positionOfText[posArray[0]][posArray[1]] = millis();
-    for (int i; i<=20; i){
-        for (int j; j<=7; j){
-            if (millis() - positionOfText[i][j] > 2000){
+    display.print('O');
+    positionOfText[posArray[0]][posArray[1]] = millis();
+
+    for (int i = 0; i <= 20; i)
+    {
+        for (int j = 0; j <= 7; j)
+        {
+            if ((positionOfText[i][j] != 0) && (millis() - positionOfText[i][j] > random(500, 4000)))
+            {
                 display.gotoXY(i, j);
                 display.print(" ");
-                j++;
+                positionOfText[i][j] = 0;
             }
-            i++;
+            j++;
         }
-    }*/
+        i++;
+    }
 }
 
 void loop()
 {
     showProxA();
-    Serial.println(sumProx());
 }
