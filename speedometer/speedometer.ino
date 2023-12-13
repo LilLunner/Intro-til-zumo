@@ -10,7 +10,7 @@ Zumo32U4ButtonB buttonB;
 Zumo32U4ButtonC buttonC;
 
 int SpeedArray[60], totDis, maxSpeed;
-unsigned long currentMillis, sMillis, cMillis, aMillis, mMillis;
+unsigned long currentMillis, sMillis, cMillis, aMillis, mMillis, lMillis;
 int arrayIndex=-1;
 int over70Counter, chargesCounter, fiveLevelCounter, v, total;
 int insaneSpeed=49;
@@ -21,10 +21,10 @@ int level1 = 20;
 
 int distance()
 {
-    unsigned long L = encoder.getCountsAndResetLeft();
-    unsigned long R = encoder.getCountsAndResetRight();
+    long int L = encoder.getCountsAndResetLeft();
+    long int R = encoder.getCountsAndResetRight();
 
-    unsigned long dis = (L+R)*6/(910); //cm
+    long int dis = (L+R)*6/(910); //cm
     return dis;
 }
 
@@ -55,6 +55,17 @@ void topSpeed()
     }
 }
 
+void buttonDisplay() {
+    display.gotoXY(0,3);
+    display.print("Press A to charge");
+    display.gotoXY(0,4);
+    display.print("Costs 10NOK");
+    display.gotoXY(0,6);
+    display.print("Press B to replace");
+    display.gotoXY(0,7);
+    display.print("Costs 100NOK");
+}
+
 void screenSpeed(){
     display.gotoXY(0,0);
     display.print(F("Speed: "));  
@@ -62,15 +73,17 @@ void screenSpeed(){
     display.gotoXY(0,1);
     display.print("Distance; ");
     display.print(totDis);
+    buttonDisplay();
 }
 
 void screenBattery(){
     display.gotoXY(0,0);
-    display.print(F("Battery_Level: "));
+    display.print("Battery_Level: ");
     display.println(battery_health);
     display.gotoXY(0,1);
     display.print("Charging_Cycles: ");
     display.println(chargesCounter);
+    buttonDisplay();
 }
 
 
@@ -86,51 +99,85 @@ int reverseCharge(int x) {
 }
 
 void job() {
-    
+
 }
 
 void alarm10() {
     buzzer.playFrequency(440, 200, 15);
     display.clear();
     display.print("Battery low!");
+    buttonDisplay();
     ledYellow(1);
+    delay(300);
+    buzzer.stopPlaying();
 }
 
 void alarm5() {
     buzzer.playFrequency(440, 200, 15);
     display.clear();
-    display.print("Battery low!");
+    display.println("Battery health");
+    display.print(battery_health);
+    display.gotoXY(0,1);
+    display.println("Battery low!");
+    buttonDisplay();
     ledRed(1);
-    if (millis()-aMillis>=15000) {
-        motors.setSpeeds(0,0);
-        buzzer.playFrequency(440, 200, 15);
-        delay(300);
-        buzzer.playFrequency(440, 200, 15);
-        delay(300);
-        aMillis=millis();
-    }
+    motors.setSpeeds(0,0);
+    buzzer.playFrequency(440, 200, 15);
+    delay(1000);
+    buzzer.stopPlaying();
+    aMillis=millis();
 }
 
 void BatteryHealthCheck() {
     int mistake=1;
     int mistakeCheck=random(100);
     if (mistake==mistakeCheck) mistake=2;
-    int battery_health=(100-chargesCounter-fiveLevelCounter-over70Counter-averageSpeed()/10-maxSpeed/10)/mistake;
+    battery_health=(battery_health-chargesCounter-fiveLevelCounter-over70Counter-averageSpeed()/10-maxSpeed/10)/mistake;
     EEPROM.write(0, battery_health);
 }
 
 void batteryService() {
-    battery_health=+20;
+    motors.setSpeeds(0,0);
+    battery_health+=10;
     chargesCounter++;
     bankBalance-=10;
+    display.clear();
+    display.println("Battery charged");
+    display.println(battery_health);
+    display.print("%");
+    display.gotoXY(0,2);
+    display.println("Bank balance;");
+    display.print(bankBalance);
+    delay(2000);
+    display.clear();
+}
+
+void pressA() {
+    if (buttonA.isPressed()) {
+        v=5;
+    }
+}
+
+void pressB() {
+    if (buttonB.isPressed()) {
+        v=6;
+    }
 }
 
 void batteryChange() {
+    motors.setSpeeds(0,0);
     battery_health=100;
     chargesCounter=0;
     fiveLevelCounter=0;
     over70Counter=0;
     bankBalance-=100;
+    display.clear();
+    display.print("Battery changed!");
+    display.gotoXY(0,2);
+    display.println("Bank balance;");
+    display.print(bankBalance);
+    delay(2000);
+    display.clear();
 }
 
 void mainFunction() {
@@ -148,11 +195,11 @@ void mainFunction() {
             }
         }
         if (battery_health<level0) {
-            v=6;
+            v=4;
             break;
         }
         if (battery_health<level1) {
-            v=5;
+            v=3;
             break;
         }
         if (millis()-sMillis>=10000) 
@@ -178,22 +225,28 @@ void mainFunction() {
         break;
     
     case 3:
+        if (millis()-lMillis>=15000) {
         alarm10();
+        lMillis=millis();
+        }
         v=0;
         break;
 
     case 4:
+        if (millis()-lMillis>=15000) {
         alarm5();
+        lMillis=millis();
+        }
         v=0;
         break;
     
     case 5:
-        //batteryService();
+        batteryService();
         v=0;
         break;
 
     case 6:
-        //batteryChange();
+        batteryChange();
         v=0;
         break;
         
@@ -205,11 +258,13 @@ void setup()
     Serial.begin(9600);
     display.clear();
     display.setLayout21x8();
-
 }
 
 void loop()
 {
-    motors.setSpeeds(400,400);
+    static int battery_health=5;
+    motors.setSpeeds(-400,-400);
+    pressA();
+    pressB();
     mainFunction();
 }
