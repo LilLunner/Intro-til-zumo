@@ -10,14 +10,11 @@ Zumo32U4ButtonB buttonB;
 Zumo32U4ButtonC buttonC;
 
 int SpeedArray[60], totDis, maxSpeed;
-unsigned long currentMillis, sMillis, cMillis, aMillis, mMillis, lMillis;
+unsigned long sMillis, cMillis, aMillis, mMillis, lMillis;
 int arrayIndex=-1;
 int over70Counter, chargesCounter, fiveLevelCounter, v, total;
-int insaneSpeed=49;
 int battery_health=EEPROM.read(0);
 int bankBalance=EEPROM.read(1);
-int level0 = 5;
-int level1 = 20;
 
 int distance()
 {
@@ -32,9 +29,9 @@ void SpeedPerSecond() { //oppdaterer en indeks i et 60 tall langt array som mål
     arrayIndex++;
     if (arrayIndex=60) arrayIndex=0;
     total=total-SpeedArray[arrayIndex];
-    if (SpeedArray[arrayIndex]>= insaneSpeed) over70Counter--;
+    if (SpeedArray[arrayIndex]>= 49) over70Counter--;
     SpeedArray[arrayIndex] = distance();
-    if (SpeedArray[arrayIndex]>= insaneSpeed) over70Counter++;
+    if (SpeedArray[arrayIndex]>= 49) over70Counter++;
     total=total+SpeedArray[arrayIndex];
 }
 
@@ -128,6 +125,13 @@ void alarm5() {
     aMillis=millis();
 }
 
+void emptyBattery() {
+    motors.setSpeeds(0,0);
+    display.print("Battery empty");
+    display.gotoXY(0,1);
+    display.print("Please change battery");
+}
+
 void BatteryHealthCheck() {
     int mistake=1;
     int mistakeCheck=random(100);
@@ -194,11 +198,16 @@ void mainFunction() {
                 mMillis=millis();
             }
         }
-        if (battery_health<level0) {
+
+        if (battery_health<=0) {
+            v=7;
+            break;
+        }
+        if (battery_health<5) {
             v=4;
             break;
         }
-        if (battery_health<level1) {
+        if (battery_health<20) {
             v=3;
             break;
         }
@@ -233,7 +242,7 @@ void mainFunction() {
         break;
 
     case 4:
-        if (millis()-lMillis>=15000) {
+        if (millis()-sMillis>=15000) {
         alarm5();
         lMillis=millis();
         }
@@ -249,7 +258,11 @@ void mainFunction() {
         batteryChange();
         v=0;
         break;
-        
+    case 7:
+        emptyBattery();
+        if (battery_health>0) {
+            v=0;
+        }       
 }
 }
 
@@ -263,7 +276,7 @@ void setup()
 void loop()
 {
     static int battery_health=5;
-    motors.setSpeeds(-400,-400);
+    motors.setSpeeds(400,400);
     pressA();
     pressB();
     mainFunction();
