@@ -5,24 +5,26 @@ Zumo32U4Encoders encoder;
 Zumo32U4Motors motors;
 Zumo32U4OLED display;
 Zumo32U4Buzzer buzzer;
+Zumo32U4ButtonA buttonA;
+Zumo32U4ButtonB buttonB;
+Zumo32U4ButtonC buttonC;
 
-float SpeedArray[60], totDis, maxSpeed;
+int SpeedArray[60], totDis, maxSpeed;
 unsigned long currentMillis, sMillis, cMillis, aMillis, mMillis;
-const int O = 12;
 int arrayIndex=-1;
 int over70Counter, chargesCounter, fiveLevelCounter, v, total;
-int insaneSpeed=280;
-int power=100;
+int insaneSpeed=49;
 int battery_health=EEPROM.read(0);
+int bankBalance=EEPROM.read(1);
 int level0 = 5;
 int level1 = 20;
 
-float distance()
+int distance()
 {
-    int L = encoder.getCountsAndResetLeft();
-    int R = encoder.getCountsAndResetRight();
+    unsigned long L = encoder.getCountsAndResetLeft();
+    unsigned long R = encoder.getCountsAndResetRight();
 
-    float dis = (L+R)*6/(910); //cm
+    unsigned long dis = (L+R)*6/(910); //cm
     return dis;
 }
 
@@ -83,9 +85,8 @@ int reverseCharge(int x) {
     return revCharge;
 }
 
-int emergencyCharge(int x) {
-        int batteryGain=10*x;
-        return batteryGain;
+void job() {
+    
 }
 
 void alarm10() {
@@ -114,16 +115,22 @@ void BatteryHealthCheck() {
     int mistake=1;
     int mistakeCheck=random(100);
     if (mistake==mistakeCheck) mistake=2;
-    int health=(100-chargesCounter-fiveLevelCounter-over70Counter-averageSpeed()/10-maxSpeed/10)/mistake;
+    int battery_health=(100-chargesCounter-fiveLevelCounter-over70Counter-averageSpeed()/10-maxSpeed/10)/mistake;
     EEPROM.write(0, battery_health);
 }
 
 void batteryService() {
     battery_health=+20;
+    chargesCounter++;
+    bankBalance-=10;
 }
 
 void batteryChange() {
     battery_health=100;
+    chargesCounter=0;
+    fiveLevelCounter=0;
+    over70Counter=0;
+    bankBalance-=100;
 }
 
 void mainFunction() {
@@ -158,6 +165,12 @@ void mainFunction() {
     
     case 1:
         screenBattery();
+        if (millis()-cMillis>=1000) {
+            BatteryHealthCheck();
+            SpeedPerSecond();
+            totDistance();
+            cMillis=millis();
+        }
         if (millis()-sMillis>=1000) {
             v=0;
             display.clear();
@@ -197,6 +210,6 @@ void setup()
 
 void loop()
 {
-    motors.setSpeeds(200,100);
+    motors.setSpeeds(400,400);
     mainFunction();
 }
