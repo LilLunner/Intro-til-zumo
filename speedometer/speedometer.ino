@@ -18,7 +18,7 @@ int arrayIndex = -1; // Starter som -1, men blir med en gang gjort om til 0 i Di
 int battery_health = EEPROM.read(0);
 int bankBalance = EEPROM.read(1);
 bool delivering, working = 0;
-unsigned long wMillis;
+uint32_t wMillis;
 
 int distance() // Teller antall motorrotasjoner og omformer det til cm.
 {
@@ -84,7 +84,7 @@ void buttonDisplay() // Displayet som viser hva knappetrykk gjør.
 
 void SpeedValues() // Oppdaterer alle hastighetsrelaterte verdiene hvert sekund og hvert minutt.
 {
-    static unsigned long cMillis, mMillis = millis();
+    static uint32_t cMillis, mMillis = millis();
     if (millis() - cMillis >= 1000) // Kjører kun hvert sekund slik at en arrayverdi blir oppdatert per sekund.
     {
 
@@ -258,7 +258,7 @@ void batteryChange() // Bytter batteriet.
 
 void softwareBattery() // Tar inn all funksjonene og organiserer dem i en stor switch-case.
 {
-    static unsigned long lMillis, sMillis = millis();
+    static uint32_t lMillis, sMillis = millis();
     SpeedValues(); // Disse kjøres utenfor switch-casen fordi man alltid vil kunne lade batteriet og oppdatere hastighetensverdiene.
     pressA();
     pressB();
@@ -363,7 +363,7 @@ void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkel
 
 int lineSensorRead()
 {
-    static unsigned int lineSensorVal[5]; // lager en variable med like mange indekser som det er sensorer
+    static uint32_t lineSensorVal[5]; // lager en variable med like mange indekser som det er sensorer
     int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000);
     return error;
 }
