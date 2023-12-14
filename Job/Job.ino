@@ -10,6 +10,8 @@ Zumo32U4OLED display;
 
 int topSpeed = 200;
 int bankBalance = EEPROM.read(1);
+unsigned long wMillis;
+bool delivering = 0;
 
 void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
 {
@@ -34,7 +36,7 @@ void setup()
     lineSensors.initFiveSensors();
     turnSensorSetup();
     turnDeg(4, 90);
-    display.setLayout11x4();
+    display.setLayout21x8();
 }
 
 int lineSensorRead()
@@ -75,33 +77,70 @@ void lineFollowPID(int pos)
     motors.setSpeeds(lSpeed, rSpeed);
 }
 
-void pressA() {
+void DrivingToWork() {
+    display.gotoXY(0,0);
+    display.print("Driving to sender");
+    display.gotoXY(0,2);
+    display.print("Press A when there");
+}
+
+void pressAWorkMode() {
     if (buttonA.isPressed()) {
+        delivering = 1;
+        display.clear();
         workPickup();
+        display.clear();
     }
 }
+
 void workPickup() {
     motors.setSpeeds(0,0);
+    display.clear();
     display.print("Work starting");
     display.gotoXY(0,2);
-    display.print("Picking up trash");
+    display.print("Picking up package");
+    delay(3000);
+    wMillis = millis();
 }
 
 void workTransport() {
-    display.print("Transporting trash.");
-
+    if (delivering)
+    display.print("Transporting package.");
 }
 
 void workDropoff() {
-    display.print("Dropping trash off.");
+    motors.setSpeeds(0,0);
+    display.print("Delivering package.");
     display.gotoXY(0,2);
     display.print("Receiving 100NOK");
     bankBalance+=100;
     EEPROM.write(1, bankBalance);
+    display.gotoXY(0,4);
+    display.println("Your balance;");
+    display.print(bankBalance);
+    display.print("NOK");
+    display.gotoXY(0,6);
+    display.print("On to the next one!");
+    delay(5000);
+    display.clear();
 }
 
+void workCycle() {
+    if (delivering == 0)
+        DrivingToWork();
+    if (delivering == 1) {
+        workTransport();
+        if (millis() - wMillis >= 15000) {
+            display.clear();
+            workDropoff();
+            delivering = 0;
+        }
+    }
+}
 
 void loop()
 {
     lineFollowPID(lineSensorRead());
+    pressAWorkMode();
+    workCycle();
 }

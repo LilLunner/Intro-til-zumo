@@ -13,12 +13,12 @@ Zumo32U4IMU imu;
 #include "TurnSensor.h"
 
 int topSpeed = 200;
-
-int SpeedArray[60], totDis, maxSpeed;
-int arrayIndex = -1; //Starter som -1, men blir med en gang gjort om til 0 i DistancePerSecond funksjonen.
-int over70Counter, chargesCounter, fiveLevelCounter, v, arraySum;
+int SpeedArray[60], totDis, maxSpeed, over70Counter, chargesCounter, fiveLevelCounter, v, arraySum;
+int arrayIndex = -1; // Starter som -1, men blir med en gang gjort om til 0 i DistancePerSecond funksjonen.
 int battery_health = EEPROM.read(0);
 int bankBalance = EEPROM.read(1);
+bool delivering, working = 0;
+unsigned long wMillis;
 
 int distance() // Teller antall motorrotasjoner og omformer det til cm.
 {
@@ -170,7 +170,7 @@ void BatteryHealthCheck() // Regner ut batterihelsen og lagrer den i EEPROM.
     int mistakeCheck = random(100);
     if (mistake == mistakeCheck)
         mistake = 2;
-    battery_health = (battery_health - chargesCounter - fiveLevelCounter - over70Counter - averageSpeed() / 10 - maxSpeed / 10) / mistake; //Om gjennomsnittshastigheten og topphastigheten er negativ, vil batteriet lades.
+    battery_health = (battery_health - chargesCounter - fiveLevelCounter - over70Counter - averageSpeed() / 10 - maxSpeed / 10) / mistake; // Om gjennomsnittshastigheten og topphastigheten er negativ, vil batteriet lades.
     if (battery_health < 0)
         battery_health = 0;
     EEPROM.write(0, battery_health);
@@ -213,6 +213,31 @@ void pressB() // Hva som skjer om man trykker på B.
     }
 }
 
+void pressC() //Bytter mellom arbeid og speedometerkjøring
+{
+    if (buttonC.isPressed())
+    {
+        motors.setSpeeds(0, 0);
+        working = !working;
+        display.clear();
+        if (working == 0) { //Resetter de relevante speedometerverdiene.
+            display.print("You're off work!");
+            encoder.getCountsAndResetLeft();
+            encoder.getCountsAndResetRight();
+            for (int i; i<60;i++) {
+                SpeedArray[i] = 0;
+            }
+            arrayIndex = -1;
+            over70Counter = 0;
+
+        }
+        else
+            display.print("Time for work!");
+        delay(2000);
+        display.clear();
+    }
+}
+
 void batteryChange() // Bytter batteriet.
 {
     motors.setSpeeds(0, 0);
@@ -231,7 +256,7 @@ void batteryChange() // Bytter batteriet.
     display.clear();
 }
 
-void mainFunction() // Tar inn all funksjonene og organiserer dem i en stor switch-case.
+void softwareBattery() // Tar inn all funksjonene og organiserer dem i en stor switch-case.
 {
     static unsigned long lMillis, sMillis = millis();
     SpeedValues(); // Disse kjøres utenfor switch-casen fordi man alltid vil kunne lade batteriet og oppdatere hastighetensverdiene.
@@ -355,6 +380,77 @@ void lineFollowPID(int pos)
     motors.setSpeeds(lSpeed, rSpeed);
 }
 
+void DrivingToWork()
+{
+    display.gotoXY(0, 0);
+    display.print("Driving to sender");
+    display.gotoXY(0, 2);
+    display.print("Press A when there");
+}
+
+void pressAWorkMode()
+{
+    if (buttonA.isPressed())
+    {
+        delivering = 1;
+        display.clear();
+        workPickup();
+        display.clear();
+    }
+}
+
+void workPickup()
+{
+    motors.setSpeeds(0, 0);
+    display.clear();
+    display.print("Work starting");
+    display.gotoXY(0, 2);
+    display.print("Picking up package");
+    delay(3000);
+    wMillis = millis();
+}
+
+void workTransport()
+{
+    if (delivering)
+        display.print("Transporting package.");
+}
+
+void workDropoff()
+{
+    motors.setSpeeds(0, 0);
+    display.print("Delivering package.");
+    display.gotoXY(0, 2);
+    display.print("Receiving 100NOK");
+    bankBalance += 100;
+    EEPROM.write(1, bankBalance);
+    display.gotoXY(0, 4);
+    display.println("Your balance;");
+    display.print(bankBalance);
+    display.print("NOK");
+    display.gotoXY(0, 6);
+    display.print("On to the next one!");
+    delay(5000);
+    display.clear();
+}
+
+void workCycle()
+{
+    pressAWorkMode();
+    if (delivering == 0)
+        DrivingToWork();
+    else
+    {
+        workTransport();
+        if (millis() - wMillis >= 15000)
+        {
+            display.clear();
+            workDropoff();
+            delivering = 0;
+        }
+    }
+}
+
 void setup()
 {
     display.clear();
@@ -367,5 +463,9 @@ void setup()
 void loop()
 {
     lineFollowPID(lineSensorRead());
-    mainFunction();
+    pressC();
+    if (working == 0)
+        softwareBattery();
+    else
+        workCycle();
 }
