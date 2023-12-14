@@ -15,13 +15,12 @@ Zumo32U4IMU imu;
 int topSpeed = 200;
 
 int SpeedArray[60], totDis, maxSpeed;
-unsigned long sMillis, cMillis, aMillis, lMillis, mMillis;
-int arrayIndex = -1;
+int arrayIndex = -1; //Starter som -1, men blir med en gang gjort om til 0 i DistancePerSecond funksjonen.
 int over70Counter, chargesCounter, fiveLevelCounter, v, arraySum;
 int battery_health = EEPROM.read(0);
 int bankBalance = EEPROM.read(1);
 
-int distance() //Teller antall rotasjoner og omformer det til cm.
+int distance() // Teller antall motorrotasjoner og omformer det til cm.
 {
     long int L = encoder.getCountsAndResetLeft();
     long int R = encoder.getCountsAndResetRight();
@@ -30,29 +29,29 @@ int distance() //Teller antall rotasjoner og omformer det til cm.
     return dis;
 }
 
-void DistancePerSecond() // oppdaterer en indeks i et 60 tall langt array som måler distanse per sekund, og sjekker om farten er over 70% av makshastighet.
-{ 
+void DistancePerSecond() // Oppdaterer en indeks i et 60 tall langt array som måler distanse per sekund, og sjekker om farten er over 70% av makshastighet.
+{
     arrayIndex++;
     if (arrayIndex == 60)
         arrayIndex = 0;
-    arraySum = arraySum - SpeedArray[arrayIndex];
+    arraySum = arraySum - SpeedArray[arrayIndex]; // Trekker fra den gamle arrayverdien fra totalsummen.
     if (SpeedArray[arrayIndex] >= 49)
         over70Counter--;
-    SpeedArray[arrayIndex] = distance();
+    SpeedArray[arrayIndex] = distance(); // Her byttes den gamle arrayverdien med den nye.
     if (SpeedArray[arrayIndex] >= 49)
         over70Counter++;
     arraySum = arraySum + SpeedArray[arrayIndex];
 }
 
-void totalDistance() //Regner ut totaldistanse.
+void totalDistance() // Regner ut totaldistanse.
 {
     totDis = totDis + SpeedArray[arrayIndex];
 }
 
-int averageSpeed() //regner ut gjennomsnittshastighet.
+int averageSpeed() // regner ut gjennomsnittshastighet.
 {
     int arrayValuesCounter;
-    for (int i = 0; i<60; i++)
+    for (int i = 0; i < 60; i++)
     {
         if (SpeedArray[i] != 0)
             arrayValuesCounter++;
@@ -61,7 +60,7 @@ int averageSpeed() //regner ut gjennomsnittshastighet.
     return average;
 }
 
-void highestSpeed() //Sjekker makshastigheten.
+void highestSpeed() // Sjekker makshastigheten.
 {
     maxSpeed = 0;
     for (int i; i <= 59; i++)
@@ -71,7 +70,7 @@ void highestSpeed() //Sjekker makshastigheten.
     }
 }
 
-void buttonDisplay() //Displayet som viser hva knappetrykk gjør.
+void buttonDisplay() // Displayet som viser hva knappetrykk gjør.
 {
     display.gotoXY(0, 3);
     display.print("Press A to charge");
@@ -83,30 +82,31 @@ void buttonDisplay() //Displayet som viser hva knappetrykk gjør.
     display.print("Costs 100NOK");
 }
 
-void SpeedValues() //Oppdaterer alle hastighetsrelaterte verdiene hvert sekund og hvert minutt.
+void SpeedValues() // Oppdaterer alle hastighetsrelaterte verdiene hvert sekund og hvert minutt.
 {
-    
-    if (millis() - cMillis >= 1000)
+    static unsigned long cMillis, mMillis = millis();
+    if (millis() - cMillis >= 1000) // Kjører kun hvert sekund slik at en arrayverdi blir oppdatert per sekund.
+    {
+
+        static bool x = 1;
+        BatteryHealthCheck();
+        DistancePerSecond();
+        totalDistance();
+        cMillis = millis();
+        if (x == 1 && SpeedArray[arrayIndex] != 0)
         {
-            
-            static bool x = 1;
-            BatteryHealthCheck();
-            DistancePerSecond();
-            totalDistance();
-            cMillis = millis();
-            if (x == 1 && SpeedArray[arrayIndex] != 0) {
-                maxSpeed = SpeedArray[arrayIndex];
-                x = 0;
-            }
-            if (millis() - mMillis >= 60000)
-            {
-                highestSpeed();
-                mMillis = millis();
-            }
+            maxSpeed = SpeedArray[arrayIndex];
+            x = 0;
         }
+        if (millis() - mMillis >= 60000)
+        {
+            highestSpeed();
+            mMillis = millis();
+        }
+    }
 }
 
-void screenSpeedometer() //Hva som vises på skjermen av speedometeret
+void screenSpeedometer() // Hva som vises på skjermen av speedometeret
 {
     display.gotoXY(0, 0);
     display.print(F("Speed: "));
@@ -117,7 +117,7 @@ void screenSpeedometer() //Hva som vises på skjermen av speedometeret
     buttonDisplay();
 }
 
-void screenBatteryHealth() //Hva som vises på skjermen av batterihelsen.
+void screenBatteryHealth() // Hva som vises på skjermen av batterihelsen.
 {
     display.gotoXY(0, 0);
     display.print("Battery_Level: ");
@@ -128,7 +128,7 @@ void screenBatteryHealth() //Hva som vises på skjermen av batterihelsen.
     buttonDisplay();
 }
 
-void alarm10() //Alarmen som slår ut når batteriet er under 10%.
+void alarm10() // Alarmen som slår ut når batteriet er under 10%.
 {
     buzzer.playFrequency(440, 200, 15);
     display.clear();
@@ -138,7 +138,7 @@ void alarm10() //Alarmen som slår ut når batteriet er under 10%.
     buzzer.stopPlaying();
 }
 
-void alarm5() //Alarmen som slår ut når batteriet er under 10%.
+void alarm5() // Alarmen som slår ut når batteriet er under 5%.
 {
     buzzer.playFrequency(440, 200, 15);
     display.clear();
@@ -150,12 +150,13 @@ void alarm5() //Alarmen som slår ut når batteriet er under 10%.
     ledRed(1);
     motors.setSpeeds(0, 0);
     buzzer.playFrequency(440, 200, 15);
-    delay(1000);
+    delay(300); // Delay brukes bevisst for at bilen ikke kjører og at tonen skal høres.
     buzzer.stopPlaying();
-    aMillis = millis();
+    delay(300);
+    buzzer.playFrequency(440, 200, 15);
 }
 
-void emptyBattery() //Sørger for at bilen stopper ved tomt batteri.
+void emptyBattery() // Sørger for at bilen stopper ved tomt batteri.
 {
     motors.setSpeeds(0, 0);
     display.print("Battery empty");
@@ -163,24 +164,27 @@ void emptyBattery() //Sørger for at bilen stopper ved tomt batteri.
     display.print("Please change battery");
 }
 
-void BatteryHealthCheck() //Regner ut batterihelsen og lagrer den i EEPROM.
+void BatteryHealthCheck() // Regner ut batterihelsen og lagrer den i EEPROM.
 {
     int mistake = 1;
     int mistakeCheck = random(100);
     if (mistake == mistakeCheck)
         mistake = 2;
-    battery_health = (battery_health - chargesCounter - fiveLevelCounter - over70Counter - averageSpeed() / 10 - maxSpeed / 10) / mistake;
+    battery_health = (battery_health - chargesCounter - fiveLevelCounter - over70Counter - averageSpeed() / 10 - maxSpeed / 10) / mistake; //Om gjennomsnittshastigheten og topphastigheten er negativ, vil batteriet lades.
     if (battery_health < 0)
         battery_health = 0;
     EEPROM.write(0, battery_health);
 }
 
-void batteryCharging() //Lader batteriet.
+void batteryCharging() // Lader batteriet.
 {
     motors.setSpeeds(0, 0);
-    battery_health += 10;
+    battery_health += 30;
+    if (battery_health > 100)
+        battery_health = 100;
     chargesCounter++;
     bankBalance -= 10;
+    EEPROM.write(0, battery_health); // Oppdaterer bankbalansen og batterhelsen i EEPROM.
     EEPROM.write(1, bankBalance);
     display.clear();
     display.println("Battery charged");
@@ -189,11 +193,11 @@ void batteryCharging() //Lader batteriet.
     display.gotoXY(0, 2);
     display.println("Bank balance;");
     display.print(bankBalance);
-    delay(2000);
+    delay(1000);
     display.clear();
 }
 
-void pressA() //Hva som skjer om man trykker på A.
+void pressA() // Hva som skjer om man trykker på A.
 {
     if (buttonA.isPressed())
     {
@@ -201,7 +205,7 @@ void pressA() //Hva som skjer om man trykker på A.
     }
 }
 
-void pressB() //Hva som skjer om man trykker på B.
+void pressB() // Hva som skjer om man trykker på B.
 {
     if (buttonB.isPressed())
     {
@@ -209,7 +213,7 @@ void pressB() //Hva som skjer om man trykker på B.
     }
 }
 
-void batteryChange() //Bytter batteriet.
+void batteryChange() // Bytter batteriet.
 {
     motors.setSpeeds(0, 0);
     battery_health = 100;
@@ -217,26 +221,27 @@ void batteryChange() //Bytter batteriet.
     fiveLevelCounter = 0;
     over70Counter = 0;
     bankBalance -= 100;
-    EEPROM.write(1,bankBalance);
+    EEPROM.write(1, bankBalance);
     display.clear();
     display.print("Battery changed!");
     display.gotoXY(0, 2);
     display.println("Bank balance;");
     display.print(bankBalance);
-    delay(2000);
+    delay(1000);
     display.clear();
 }
 
-void mainFunction() //Tar inn all funksjonene og organiserer dem i en stor switch-case.
+void mainFunction() // Tar inn all funksjonene og organiserer dem i en stor switch-case.
 {
-    SpeedValues();
+    static unsigned long lMillis, sMillis = millis();
+    SpeedValues(); // Disse kjøres utenfor switch-casen fordi man alltid vil kunne lade batteriet og oppdatere hastighetensverdiene.
     pressA();
     pressB();
     switch (v)
     {
     case 0:
         screenSpeedometer();
-        
+        // Kjører speedometeret på skjermen og sjekker om batteriet er tomt eller om det er på tide å vise batterihelsen eller alarm for lavt batteri.
         if (battery_health <= 0)
         {
             v = 7;
@@ -247,15 +252,17 @@ void mainFunction() //Tar inn all funksjonene og organiserer dem i en stor switc
         {
             if (battery_health < 10)
             {
+                display.clear();
                 v = 3;
             }
             if (battery_health < 5)
             {
+                display.clear();
                 v = 4;
             }
-            lMillis=millis();
+            lMillis = millis();
             break;
-        } 
+        }
         if (millis() - sMillis >= 10000)
         {
             v = 1;
@@ -265,35 +272,46 @@ void mainFunction() //Tar inn all funksjonene og organiserer dem i en stor switc
         break;
 
     case 1:
-        screenBatteryHealth();
+        screenBatteryHealth(); // Viser batterihelsen i et sekund og går deretter tilbake til speedometert.
         if (millis() - sMillis >= 1000)
         {
             v = 0;
             display.clear();
+            sMillis = millis();
         }
         break;
 
     case 3:
-        alarm10();
-        v = 0;
+        alarm10(); // Gir 10% alarm og går deretter tilbake til speedometeret.
+        if (millis() - lMillis >= 1000)
+        {
+            v = 0;
+            buzzer.stopPlaying();
+            lMillis = millis();
+        }
         break;
 
     case 4:
-        alarm5();
-        v = 0;
+        alarm5(); // Gir 5% alarm og går deretter tilbake til speedometeret.
+        if (millis() - lMillis >= 1000)
+        {
+            v = 0;
+            buzzer.stopPlaying();
+            lMillis = millis();
+        }
         break;
 
     case 5:
-        batteryCharging();
+        batteryCharging(); // Lader batteriet og går deretter tilbake til speedometeret.
         v = 0;
         break;
 
     case 6:
-        batteryChange();
+        batteryChange(); // Bytter batteriet og går deretter tilbake til speedometeret.
         v = 0;
         break;
     case 7:
-        emptyBattery();
+        emptyBattery(); // Stopper bilen og står der til batteriet blir ladet eller byttet.
         if (battery_health > 0)
         {
             v = 0;
@@ -301,7 +319,7 @@ void mainFunction() //Tar inn all funksjonene og organiserer dem i en stor switc
     }
 }
 
-void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
+void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkel
 {
     int i = 1;
     while (i <= x) // teller antall rotasjoner
@@ -344,7 +362,6 @@ void setup()
     lineSensors.initFiveSensors();
     turnSensorSetup();
     turnDeg(4, 90);
-
 }
 
 void loop()
