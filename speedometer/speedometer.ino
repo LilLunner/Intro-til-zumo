@@ -1,6 +1,6 @@
 #include <Zumo32U4.h>
 #include <EEPROM.h>
-
+#include <Wire.h>
 Zumo32U4Encoders encoder;
 Zumo32U4Motors motors;
 Zumo32U4OLED display;
@@ -8,15 +8,20 @@ Zumo32U4Buzzer buzzer;
 Zumo32U4ButtonA buttonA;
 Zumo32U4ButtonB buttonB;
 Zumo32U4ButtonC buttonC;
+Zumo32U4LineSensors lineSensors;
+Zumo32U4IMU imu;
+#include "TurnSensor.h"
+
+int topSpeed = 200;
 
 int SpeedArray[60], totDis, maxSpeed;
-unsigned long sMillis, cMillis, aMillis, mMillis, lMillis;
+unsigned long sMillis, cMillis, aMillis, lMillis, mMillis;
 int arrayIndex = -1;
 int over70Counter, chargesCounter, fiveLevelCounter, v, arraySum;
 int battery_health = EEPROM.read(0);
 int bankBalance = EEPROM.read(1);
 
-int distance()
+int distance() //Teller antall rotasjoner og omformer det til cm.
 {
     long int L = encoder.getCountsAndResetLeft();
     long int R = encoder.getCountsAndResetRight();
@@ -25,10 +30,10 @@ int distance()
     return dis;
 }
 
-void DistancePerSecond()
-{ // oppdaterer en indeks i et 60 tall langt array som måler distanse per sekund
+void DistancePerSecond() // oppdaterer en indeks i et 60 tall langt array som måler distanse per sekund, og sjekker om farten er over 70% av makshastighet.
+{ 
     arrayIndex++;
-    if (arrayIndex = 60)
+    if (arrayIndex == 60)
         arrayIndex = 0;
     arraySum = arraySum - SpeedArray[arrayIndex];
     if (SpeedArray[arrayIndex] >= 49)
@@ -39,12 +44,12 @@ void DistancePerSecond()
     arraySum = arraySum + SpeedArray[arrayIndex];
 }
 
-void totalDistance()
+void totalDistance() //Regner ut totaldistanse.
 {
     totDis = totDis + SpeedArray[arrayIndex];
 }
 
-int averageSpeed()
+int averageSpeed() //regner ut gjennomsnittshastighet.
 {
     int arrayValuesCounter;
     for (int i = 0; i<60; i++)
@@ -56,17 +61,17 @@ int averageSpeed()
     return average;
 }
 
-void topSpeed()
+void highestSpeed() //Sjekker makshastigheten.
 {
     maxSpeed = 0;
-    for (int i; i >= 59; i++)
+    for (int i; i <= 59; i++)
     {
         if (SpeedArray[i] > maxSpeed)
             maxSpeed = SpeedArray[i];
     }
 }
 
-void buttonDisplay()
+void buttonDisplay() //Displayet som viser hva knappetrykk gjør.
 {
     display.gotoXY(0, 3);
     display.print("Press A to charge");
@@ -78,23 +83,30 @@ void buttonDisplay()
     display.print("Costs 100NOK");
 }
 
-void SpeedValues()
+void SpeedValues() //Oppdaterer alle hastighetsrelaterte verdiene hvert sekund og hvert minutt.
 {
+    
     if (millis() - cMillis >= 1000)
         {
+            
+            static bool x = 1;
             BatteryHealthCheck();
             DistancePerSecond();
             totalDistance();
             cMillis = millis();
+            if (x == 1 && SpeedArray[arrayIndex] != 0) {
+                maxSpeed = SpeedArray[arrayIndex];
+                x = 0;
+            }
             if (millis() - mMillis >= 60000)
             {
-                topSpeed();
+                highestSpeed();
                 mMillis = millis();
             }
         }
 }
 
-void screenSpeedometer()
+void screenSpeedometer() //Hva som vises på skjermen av speedometeret
 {
     display.gotoXY(0, 0);
     display.print(F("Speed: "));
@@ -105,7 +117,7 @@ void screenSpeedometer()
     buttonDisplay();
 }
 
-void screenBatteryHealth()
+void screenBatteryHealth() //Hva som vises på skjermen av batterihelsen.
 {
     display.gotoXY(0, 0);
     display.print("Battery_Level: ");
@@ -116,7 +128,7 @@ void screenBatteryHealth()
     buttonDisplay();
 }
 
-void alarm10()
+void alarm10() //Alarmen som slår ut når batteriet er under 10%.
 {
     buzzer.playFrequency(440, 200, 15);
     display.clear();
@@ -126,7 +138,7 @@ void alarm10()
     buzzer.stopPlaying();
 }
 
-void alarm5()
+void alarm5() //Alarmen som slår ut når batteriet er under 10%.
 {
     buzzer.playFrequency(440, 200, 15);
     display.clear();
@@ -143,7 +155,7 @@ void alarm5()
     aMillis = millis();
 }
 
-void emptyBattery()
+void emptyBattery() //Sørger for at bilen stopper ved tomt batteri.
 {
     motors.setSpeeds(0, 0);
     display.print("Battery empty");
@@ -151,7 +163,7 @@ void emptyBattery()
     display.print("Please change battery");
 }
 
-void BatteryHealthCheck()
+void BatteryHealthCheck() //Regner ut batterihelsen og lagrer den i EEPROM.
 {
     int mistake = 1;
     int mistakeCheck = random(100);
@@ -163,12 +175,13 @@ void BatteryHealthCheck()
     EEPROM.write(0, battery_health);
 }
 
-void batteryService()
+void batteryCharging() //Lader batteriet.
 {
     motors.setSpeeds(0, 0);
     battery_health += 10;
     chargesCounter++;
     bankBalance -= 10;
+    EEPROM.write(1, bankBalance);
     display.clear();
     display.println("Battery charged");
     display.println(battery_health);
@@ -180,7 +193,7 @@ void batteryService()
     display.clear();
 }
 
-void pressA()
+void pressA() //Hva som skjer om man trykker på A.
 {
     if (buttonA.isPressed())
     {
@@ -188,7 +201,7 @@ void pressA()
     }
 }
 
-void pressB()
+void pressB() //Hva som skjer om man trykker på B.
 {
     if (buttonB.isPressed())
     {
@@ -196,7 +209,7 @@ void pressB()
     }
 }
 
-void batteryChange()
+void batteryChange() //Bytter batteriet.
 {
     motors.setSpeeds(0, 0);
     battery_health = 100;
@@ -204,6 +217,7 @@ void batteryChange()
     fiveLevelCounter = 0;
     over70Counter = 0;
     bankBalance -= 100;
+    EEPROM.write(1,bankBalance);
     display.clear();
     display.print("Battery changed!");
     display.gotoXY(0, 2);
@@ -213,7 +227,7 @@ void batteryChange()
     display.clear();
 }
 
-void mainFunction()
+void mainFunction() //Tar inn all funksjonene og organiserer dem i en stor switch-case.
 {
     SpeedValues();
     pressA();
@@ -270,7 +284,7 @@ void mainFunction()
         break;
 
     case 5:
-        batteryService();
+        batteryCharging();
         v = 0;
         break;
 
@@ -287,14 +301,54 @@ void mainFunction()
     }
 }
 
+void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
+{
+    int i = 1;
+    while (i <= x) // teller antall rotasjoner
+    {
+        motors.setSpeeds(-100, 100);
+        while ((int32_t)turnAngle < (turnAngle1 * (y))) // stopper her helt til den har truffet 90*, det virker som hva som hva som er 90 endres fra dag til dag
+        {
+            turnSensorUpdate();
+            lineSensors.calibrate();
+        }
+        turnSensorReset(); // reseter gyroskop dataen
+        motors.setSpeeds(0, 0);
+        i++;
+    }
+}
+
+int lineSensorRead()
+{
+    static unsigned int lineSensorVal[5]; // lager en variable med like mange indekser som det er sensorer
+    int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000);
+    return error;
+}
+
+void lineFollowPID(int pos)
+{ // tar inn posisjonen
+    static int prevPos;
+    int correction = pos / 4 + 6 * (pos - prevPos); // kilde eksempelkode
+    prevPos = pos;
+    int lSpeed = topSpeed + correction;      // farten på venstre side lik topSpeed + correction
+    int rSpeed = topSpeed - correction;      // farten på høgre side lik topspeed - correction
+    lSpeed = constrain(lSpeed, 0, topSpeed); // setter slik at verdien vil alltids være mellom 200 og 0, vil forhindre for høye hastigheter, men viktigs
+    rSpeed = constrain(rSpeed, 0, topSpeed); // hindrer at det vil fort gå fra positiv hastighet til negativ hastighet som kan skade motorene.
+    motors.setSpeeds(lSpeed, rSpeed);
+}
+
 void setup()
 {
     display.clear();
     display.setLayout21x8();
+    lineSensors.initFiveSensors();
+    turnSensorSetup();
+    turnDeg(4, 90);
+
 }
 
 void loop()
 {
-    motors.setSpeeds(200, 200);
+    lineFollowPID(lineSensorRead());
     mainFunction();
 }
