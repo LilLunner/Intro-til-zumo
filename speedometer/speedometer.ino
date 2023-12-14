@@ -22,7 +22,7 @@ uint32_t wMillis;
 
 int distance() // Teller antall motorrotasjoner og omformer det til cm.
 {
-    long int L = encoder.getCountsAndResetLeft();
+    long int L = encoder.getCountsAndResetLeft(); 
     long int R = encoder.getCountsAndResetRight();
 
     long int dis = (L + R) * 6 / (910); // cm
@@ -361,17 +361,17 @@ void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkel
     }
 }
 
-int lineSensorRead() //Leser av linjesensorene
+int lineSensorRead() //returrner linjesensor data
 {
     static uint32_t lineSensorVal[5]; // lager en variable med like mange indekser som det er sensorer
-    int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000);
-    return error;
+    int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000); //linjesensoren returnerer verdi fra 0 til 4000, 
+    return error;                                                     //med 2000 som midt punkt, her ednrers det til -2000 til 2000 med 0 som midtpunkt
 }
 
 void lineFollowPID(int pos) //Linjefølging med PID
 { // tar inn posisjonen
     static int prevPos;
-    int correction = pos / 4 + 6 * (pos - prevPos); // kilde eksempelkode
+    int correction = pos / 4 + 6 * (pos - prevPos); // kilde https://github.com/pololu/zumo-32u4-arduino-library/blob/master/examples/LineAndProximitySensors/LineAndProximitySensors.ino 
     prevPos = pos;
     int lSpeed = topSpeed + correction;      // farten på venstre side lik topSpeed + correction
     int rSpeed = topSpeed - correction;      // farten på høgre side lik topspeed - correction
@@ -454,10 +454,10 @@ void workCycle() //Alle jobbfunksjonene satt sammen
 void setup()
 {
     display.clear();
-    display.setLayout21x8();
-    lineSensors.initFiveSensors();
-    turnSensorSetup();
-    turnDeg(4, 90);
+    display.setLayout21x8(); //setter opp skjermen på den mmåten det er mulig å ha mest mulig tekst
+    lineSensors.initFiveSensors(); //intialiserer de fem linjesensorene
+    turnSensorSetup(); //kjører TurnSensorSetup fra TurnSensor.h
+    turnDeg(4, 90); 
 }
 
 void loop()
