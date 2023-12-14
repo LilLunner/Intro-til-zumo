@@ -79,10 +79,10 @@ void ryggeSensor()
 
     if (dis <= 20)
     {
-        int disShow = map(dis, 0, 20, 4, 0);
+        int disShow = map(dis, 0, 20, 4, 0); //mapper ut distancen fra 20 cm, til 4 verdier slik at det blir en høgre hver 5 cm
         ledOn(disShow);
     }
-    else
+    else 
     {
         allOff();
     }
