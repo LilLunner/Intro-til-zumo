@@ -3,6 +3,7 @@ int lightSensor = A5;
 int presureSensor = A3;
 int trig = 6;
 int echo = 7;
+int pushButton = 8;
 
 void setup()
 {
@@ -12,7 +13,6 @@ void setup()
     }
     pinMode(trig, OUTPUT);
     pinMode(echo, INPUT);
-    Serial.begin(9600);
 }
 
 void ledOn(int var)
@@ -31,6 +31,36 @@ void allOff()
     {
         digitalWrite(ledLight[i], LOW);
     }
+}
+
+// hentet fra program jeg har  agd tidligere i semsteret
+bool button() // må initaliserer "valg" og "buttonVar" i oppstart
+{
+    static bool buttonVar, valg = false;
+    if (digitalRead(pushButton) == HIGH)
+    {
+        buttonVar = true; // setter buttonVar til true mens knappen er klikket ned
+    }
+    if ((digitalRead(pushButton) == LOW) && (buttonVar == true)) // vil kjøre når knappen slippes og endrer retur variablen
+    {
+        valg = !valg;
+        buttonVar = false;
+    }
+    return valg;
+}
+
+int pressCount()
+{
+    static bool lastButtonState = false;
+    static int counter;
+    if (lastButtonState != button())
+    {
+        lastButtonState = button();
+        counter++;
+    }
+    if (counter > 2)
+        counter = 0;
+    return counter;
 }
 
 void LightSensorShow()
@@ -61,8 +91,8 @@ void ryggeSensor()
 void crashDetect()
 {
     int pressure = map(analogRead(presureSensor), 0, 1023, 0, 4);
-    switch (pressure)
-    {
+    switch (pressure) // måten vi har koblet opp, er LED på pin 3 og 4 grønne, 5 gul og 2 rød, så basert på trykket, vil flere LED lyse i økende fare lys,
+    {                 // for  å representere skaden
     case 0:
         allOff();
         break;
@@ -79,7 +109,21 @@ void crashDetect()
     Serial.println(pressure);
 }
 
+void mode(){
+    switch (pressCount())
+    {
+    case 0:
+        LightSensorShow();
+        break;
+    case 1:
+        ryggeSensor();
+        break;
+    case 2:
+        crashDetect();
+    }
+}
+
 void loop()
 {
-    
+    mode();
 }

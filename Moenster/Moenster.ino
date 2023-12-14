@@ -73,5 +73,4 @@ void setup() {
 
 void loop() {
     square();
-    delay(500000);
 }
