@@ -9,10 +9,9 @@ Zumo32U4OLED display;
 Zumo32U4IMU imu;
 Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
+int deg90 = 90;
 
 #include "TurnSensor.h"
-
-int circleMillis, zigzagMillis;
 
 void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
 {
@@ -23,6 +22,7 @@ void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
         while ((int32_t)turnAngle < (turnAngle1 * (y))) // stopper her helt til den har truffet 90*, det virker som hva som hva som er 90 endres fra dag til dag
         {
             turnSensorUpdate();
+            showProxA();
         }
         turnSensorReset(); // reseter gyroskop dataen
         motors.setSpeeds(0, 0);
@@ -32,16 +32,16 @@ void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
 
 void square()
 {
-    unsigned long time = millis();
+    uint32_t time = millis();
     static int check, prevCheck;
     for (int i = 0; i <= 4; i)
     {
         motors.setSpeeds(150, 150);
+        showProxA();
         if ((millis() - 2500) > time)
         {
             motors.setSpeeds(0, 0);
-            delay(100);
-            turnDeg(1, 87);
+            turnDeg(1, deg90);
             time = millis();
             i++;
         }
@@ -50,17 +50,18 @@ void square()
 
 void circle()
 {
+    static uint32_t circleMillis = millis();
     motors.setSpeeds(200, 100);
     if (millis() - circleMillis >= 5000)
     {
         motors.setSpeeds(0, 0);
-        buttonA.waitForButton();
         circleMillis = millis(); // last 2 lines can be replaced with break in a switch case
     }
 }
 
 void zigzag()
 {
+    static uint32_t zigzagMillis = millis();
     if (millis() - zigzagMillis >= 2300)
     {
         motors.setSpeeds(100, 200);
@@ -84,7 +85,7 @@ int sumProx()
 
 void rnd(int pposArray[])
 {
-    static unsigned long proxTime;
+    static uint32_t proxTime;
     if (sumProx() != 0)
     {
         if (millis() - proxTime >= 1200 / pow(sumProx(), 2))
@@ -103,7 +104,7 @@ void rnd(int pposArray[])
 
 void showProxA()
 {
-    static unsigned long positionOfText[21][8];
+    static uint32_t positionOfText[21][8];
     static int posArray[2];
     rnd(posArray);
     display.gotoXY(posArray[0], posArray[1]);
@@ -152,7 +153,6 @@ void Interface() {
 void setup()
 {
     turnSensorSetup();
-    zigzagMillis = millis();
     display.init();
     display.setLayout21x8();
     proxSensors.initFrontSensor();
@@ -161,6 +161,9 @@ void setup()
 
 void loop()
 {
-    square();
+    Interface();
+    pressA();
+    pressB();
+    pressC();
     showProxA();
 }
