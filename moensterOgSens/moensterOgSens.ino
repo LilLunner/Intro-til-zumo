@@ -65,15 +65,11 @@ void zigzag()
     if (millis() - zigzagMillis >= 2300)
     {
         motors.setSpeeds(100, 200);
+        if (millis() - zigzagMillis >= 4600)
+            zigzagMillis = millis();
     }
     else
-        motors.setSpeeds(200, 100);
-
-    if (millis() - zigzagMillis >= 4600)
-    {
-        zigzagMillis = millis();
-        motors.setSpeeds(200, 100);
-    }
+        motors.setSpeeds(200, 100);       
 }
 
 int sumProx()
@@ -157,11 +153,11 @@ void setup()
     display.setLayout21x8();
     proxSensors.initFrontSensor();
     display.clear();
+    Interface();
 }
 
 void loop()
 {
-    Interface();
     pressA();
     pressB();
     pressC();
