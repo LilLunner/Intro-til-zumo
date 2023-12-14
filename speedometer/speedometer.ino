@@ -256,7 +256,7 @@ void batteryChange() // Bytter batteriet.
     display.clear();
 }
 
-void softwareBattery() // Tar inn all funksjonene og organiserer dem i en stor switch-case.
+void softwareBattery() // Tar inn alle software-batteri funksjonene og organiserer dem i en stor switch-case.
 {
     static uint32_t lMillis, sMillis = millis();
     SpeedValues(); // Disse kjøres utenfor switch-casen fordi man alltid vil kunne lade batteriet og oppdatere hastighetensverdiene.
@@ -361,14 +361,14 @@ void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkel
     }
 }
 
-int lineSensorRead()
+int lineSensorRead() //Leser av linjesensorene
 {
     static uint32_t lineSensorVal[5]; // lager en variable med like mange indekser som det er sensorer
     int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000);
     return error;
 }
 
-void lineFollowPID(int pos)
+void lineFollowPID(int pos) //Linjefølging med PID
 { // tar inn posisjonen
     static int prevPos;
     int correction = pos / 4 + 6 * (pos - prevPos); // kilde eksempelkode
@@ -380,7 +380,7 @@ void lineFollowPID(int pos)
     motors.setSpeeds(lSpeed, rSpeed);
 }
 
-void DrivingToWork()
+void DrivingToWork() //Kjører på vei til senderen.
 {
     display.gotoXY(0, 0);
     display.print("Driving to sender");
@@ -388,7 +388,7 @@ void DrivingToWork()
     display.print("Press A when there");
 }
 
-void pressAWorkMode()
+void pressAWorkMode() //Når man trykker på A stopper bilen og plukker opp pakken.
 {
     if (buttonA.isPressed())
     {
@@ -399,7 +399,7 @@ void pressAWorkMode()
     }
 }
 
-void workPickup()
+void workPickup() //Hva som skjer når bilen skal plukke opp pakken.
 {
     motors.setSpeeds(0, 0);
     display.clear();
@@ -410,13 +410,13 @@ void workPickup()
     wMillis = millis();
 }
 
-void workTransport()
+void workTransport() //Bilen transporter pakken.
 {
     if (delivering)
         display.print("Transporting package.");
 }
 
-void workDropoff()
+void workDropoff() //Bilen stopper og leverer pakken.
 {
     motors.setSpeeds(0, 0);
     display.print("Delivering package.");
@@ -434,16 +434,16 @@ void workDropoff()
     display.clear();
 }
 
-void workCycle()
+void workCycle() //Alle jobbfunksjonene satt sammen
 {
-    pressAWorkMode();
-    if (delivering == 0)
+    pressAWorkMode(); //Når A knappen blir trykket, plukkes pakken opp.
+    if (delivering == 0) //Hvis bilen ikke leverer, er den på vei til en sender.
         DrivingToWork();
     else
     {
-        workTransport();
+        workTransport();  //Forklarer på skjermen at bilen kjører pakken.
         if (millis() - wMillis >= 15000)
-        {
+        { //Etter 15 sekunder droppes pakken av hos mottaker.
             display.clear();
             workDropoff();
             delivering = 0;
