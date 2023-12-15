@@ -34,9 +34,9 @@ void square()
 {
     uint32_t time = millis();
     static int check, prevCheck;
-    for (int i = 0; i <= 4; i)
+    for (int i = 0; i < 4; i)
     {
-        motors.setSpeeds(150, 150);
+        motors.setSpeeds(150, 160);
         showProxA();
         if ((millis() - 2500) > time)
         {
@@ -52,7 +52,7 @@ void circle()
 {
     uint32_t circleMillis = millis();
     motors.setSpeeds(200, 100);
-    while (millis() - circleMillis < 6000)
+    while (millis() - circleMillis < 5000)
         showProxA();
 }
 
@@ -67,26 +67,25 @@ void zigzag()
         if (x == 0)
         {
             motors.setSpeeds(200, 100);
-            if ((int32_t) turnAngle >= turnAngle1*179) 
+            if ((int32_t)turnAngle >= turnAngle1 * 179)
             {
                 i++;
                 zigzagMillis = millis();
                 x = !x;
-                turnSensorReset();  
+                turnSensorReset();
             }
         }
         else
         {
             motors.setSpeeds(100, 200);
-           if ((int32_t) turnAngle >= turnAngle1*179) 
+            if ((int32_t)turnAngle >= turnAngle1 * 179)
             {
                 i++;
                 zigzagMillis = millis();
                 x = !x;
-                turnSensorReset();  
+                turnSensorReset();
             }
         }
-        
     }
 }
 
@@ -156,7 +155,10 @@ void pressB()
 void pressC()
 {
     if (buttonC.isPressed())
+    {
+        turnSensorReset();
         v = 3;
+    }
 }
 
 void Interface()
