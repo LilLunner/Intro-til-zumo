@@ -11,7 +11,7 @@ Zumo32U4ProximitySensors proxSensors;
 int deg90 = 90;
 int v;
 
-#include "TurnSensor.h"
+#include "TurnSensor.h" //kilde 5
 
 void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkeel
 {
@@ -36,7 +36,7 @@ void square()
     static int check, prevCheck;
     for (int i = 0; i < 4; i)
     {
-        motors.setSpeeds(150, 160);
+        motors.setSpeeds(150, 160); 
         showProxA();
         if ((millis() - 2500) > time)
         {

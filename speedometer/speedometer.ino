@@ -9,7 +9,7 @@ Zumo32U4ButtonB buttonB;
 Zumo32U4ButtonC buttonC;
 Zumo32U4LineSensors lineSensors;
 Zumo32U4IMU imu;
-#include "TurnSensor.h"
+#include "TurnSensor.h" //kilde 5
 
 int topSpeed = 200;
 int SpeedArray[60], totDis, maxSpeed, over70Counter, chargesCounter, fiveLevelCounter, v, arraySum;

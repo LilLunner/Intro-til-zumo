@@ -34,7 +34,7 @@ void allOff() //skrur av alle LED lysene
     }
 }
 
-// hentet fra program jeg har  agd tidligere i semsteret
+// kilde 4
 bool button() //registerer knappeklikk, når knappen slippes
 {
     static bool buttonVar, valg = false;
@@ -74,7 +74,7 @@ void ryggeSensor()
 {
     static float dis;
     digitalWrite(trig, LOW); //sender ut signal hvert 2 microsekund som blir 
-    delayMicroseconds(2); // kilde https://projecthub.arduino.cc/Isaac100/getting-started-with-the-hc-sr04-ultrasonic-sensor-7cabe1
+    delayMicroseconds(2); // kilde 3
     digitalWrite(trig, HIGH);
     dis = (pulseIn(echo, HIGH) * 0.0343) / 2; //plukker opp echoet fra signalet til trig, ganges med en konstant for å oversette til cm
 
