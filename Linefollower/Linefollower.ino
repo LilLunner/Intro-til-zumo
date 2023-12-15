@@ -74,5 +74,5 @@ void lineFollowPID(int pos)
 
 void loop()
 {
-    lineFollowPID(lineSensorRead());
+    lineFollowStandard(lineSensorRead());
 }
