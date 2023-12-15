@@ -172,6 +172,8 @@ void BatteryHealthCheck() // Regner ut batterihelsen og lagrer den i EEPROM.
     battery_health = (battery_health - chargesCounter - fiveLevelCounter - over70Counter - averageSpeed() / 10 - maxSpeed / 10) / mistake; // Om gjennomsnittshastigheten og topphastigheten er negativ, vil batteriet lades.
     if (battery_health < 0)
         battery_health = 0;
+    if (battery_health >= 100)
+        battery_health = 100;
     EEPROM.write(0, battery_health);
 }
 
