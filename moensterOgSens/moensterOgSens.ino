@@ -34,11 +34,11 @@ void square()
 {
     uint32_t time = millis();
     static int check, prevCheck;
-    for (int i = 0; i < 4; i)
+    for (int i = 0; i < 4; i) //vil kjøre 4 ganger, men teller først når zumoen har rptert 90 grader
     {
-        motors.setSpeeds(150, 160); 
+        motors.setSpeeds(150, 160); //hastigheten på den ene er høyere, siden zumoen har en tedens å lene mot en side
         showProxA();
-        if ((millis() - 2500) > time)
+        if ((millis() - 2500) > time) //etter 2,5 sekunder stopper zumoen og roter 90 grader
         {
             motors.setSpeeds(0, 0);
             turnDeg(1, deg90);
@@ -89,50 +89,50 @@ void zigzag()
     }
 }
 
-int sumProx()
+int sumProx() //tra inn data far proximiti sensorene på høyere og venstere foran og summerer de sammen
 {
     proxSensors.read();
     int sumProxa = proxSensors.countsFrontWithLeftLeds() + proxSensors.countsFrontWithRightLeds();
     return sumProxa;
 }
 
-void rnd(int pposArray[])
+void rnd(int pposArray[]) //genrerer tilfeldig kordinater til skjermen basert på proximeti sensoren
 {
-    static uint32_t proxTime;
-    if (sumProx() != 0)
+    static uint32_t proxTime = millis();
+    if (sumProx() != 0) //kjører om proximity sensorene plukker opp noe
     {
-        if (millis() - proxTime >= 1200 / pow(sumProx(), 2))
+        if (millis() - proxTime >= 1200 / pow(sumProx(), 2)) //genrerer tilfeldig kordinat eksponesielt fortere jo nærmere noe er zumoen
         {
-            pposArray[0] = random(0, 20);
-            pposArray[1] = random(0, 7);
+            pposArray[0] = random(0, 20); //genrer x kordinat
+            pposArray[1] = random(0, 7); //genrer y kordinat
             proxTime = millis();
         }
     }
     else
     {
-        pposArray[0] = 27;
+        pposArray[0] = 27; //en vilkårlig kordinat utenfor skjermen
         pposArray[1] = 27;
     }
 }
 
-void showProxA()
+void showProxA() //vil dkrive O på tilffeldige steder på skjermen og slette den etter den har hvert der i 0,5-4 sekunder
 {
-    static uint32_t positionOfText[21][8];
+    static uint32_t positionOfText[21][8]; //et to dimensjonalt array som skal lagre tidspunktet hver gang det blir skrevet en O på tilsvarende position
     static int posArray[2];
     rnd(posArray);
-    display.gotoXY(posArray[0], posArray[1]);
+    display.gotoXY(posArray[0], posArray[1]); //går til og skriver O på den tilfeldig genererte positionen
     display.print('O');
-    positionOfText[posArray[0]][posArray[1]] = millis();
+    positionOfText[posArray[0]][posArray[1]] = millis(); //lagrer tidspunktet og positionen O ble skrevet
 
-    for (int i = 0; i <= 20; i)
+    for (int i = 0; i <= 20; i) 
     {
-        for (int j = 0; j <= 7; j)
+        for (int j = 0; j <= 7; j) 
         {
-            if ((positionOfText[i][j] != 0) && (millis() - positionOfText[i][j] > random(500, 4000)))
+            if ((positionOfText[i][j] != 0) && (millis() - positionOfText[i][j] > random(500, 4000))) //kjekker alle kordinatene om en O har vert skrevet der i lengre enn et tilfeldig tid mellom 0,5-4 sekunder
             {
                 display.gotoXY(i, j);
-                display.print(" ");
-                positionOfText[i][j] = 0;
+                display.print(" "); //sletter O-en
+                positionOfText[i][j] = 0; //setter tiden tilbake til 0
             }
             j++;
         }
