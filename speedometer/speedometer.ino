@@ -83,15 +83,18 @@ void buttonDisplay() // Displayet som viser hva knappetrykk gjør.
 
 void SpeedValues() // Oppdaterer alle hastighetsrelaterte verdiene hvert sekund og hvert minutt.
 {
-    static uint32_t cMillis, mMillis = millis();
+    static uint32_t cMillis, mMillis, bMillis = millis();
     if (millis() - cMillis >= 1000) // Kjører kun hvert sekund slik at en arrayverdi blir oppdatert per sekund.
     {
 
         static bool x = 1;
-        BatteryHealthCheck();
         DistancePerSecond();
         totalDistance();
         cMillis = millis();
+        if (millis() - bMillis >= 3000) {
+            BatteryHealthCheck();
+            bMillis = millis();
+        }
         if (x == 1 && SpeedArray[arrayIndex] != 0)
         {
             maxSpeed = SpeedArray[arrayIndex];
@@ -130,17 +133,14 @@ void screenBatteryHealth() // Hva som vises på skjermen av batterihelsen.
 void alarm10() // Alarmen som slår ut når batteriet er under 10%.
 {
     buzzer.playFrequency(440, 200, 15);
-    display.clear();
     display.print("Battery low!");
     buttonDisplay();
     ledYellow(1);
-    buzzer.stopPlaying();
 }
 
 void alarm5() // Alarmen som slår ut når batteriet er under 5%.
 {
     buzzer.playFrequency(440, 200, 15);
-    display.clear();
     display.println("Battery health");
     display.print(battery_health);
     display.gotoXY(0, 1);
@@ -257,7 +257,7 @@ void batteryChange() // Bytter batteriet.
 
 void softwareBattery() // Tar inn alle software-batteri funksjonene og organiserer dem i en stor switch-case.
 {
-    static uint32_t lMillis, sMillis = millis();
+    static uint32_t lMillis, sMillis, eMillis = millis();
     SpeedValues(); // Disse kjøres utenfor switch-casen fordi man alltid vil kunne lade batteriet og oppdatere hastighetensverdiene.
     pressA();
     pressB();
@@ -274,18 +274,22 @@ void softwareBattery() // Tar inn alle software-batteri funksjonene og organiser
         }
         if (millis() - lMillis >= 15000)
         {
-            if (battery_health < 10)
-            {
-                display.clear();
-                v = 3;
-            }
             if (battery_health < 5)
             {
                 display.clear();
                 v = 4;
+                lMillis = millis();
+                break;
             }
-            lMillis = millis();
-            break;
+        }
+        if (millis()-eMillis >= 15000) {
+            if (battery_health < 10)
+            {
+                display.clear();
+                v = 3;
+                eMillis = millis();
+                break;
+            }
         }
         if (millis() - sMillis >= 10000)
         {
@@ -302,16 +306,18 @@ void softwareBattery() // Tar inn alle software-batteri funksjonene og organiser
             v = 0;
             display.clear();
             sMillis = millis();
+            display.clear();
         }
         break;
 
     case 3:
         alarm10(); // Gir 10% alarm og går deretter tilbake til speedometeret.
-        if (millis() - lMillis >= 1000)
+        if (millis() - eMillis >= 1000)
         {
             v = 0;
             buzzer.stopPlaying();
-            lMillis = millis();
+            eMillis = millis();
+            display.clear();
         }
         break;
 
@@ -322,6 +328,7 @@ void softwareBattery() // Tar inn alle software-batteri funksjonene og organiser
             v = 0;
             buzzer.stopPlaying();
             lMillis = millis();
+            display.clear();
         }
         break;
 
