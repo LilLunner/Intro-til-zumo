@@ -1,6 +1,5 @@
 #include <Zumo32U4.h>
 #include <EEPROM.h>
-#include <Wire.h>
 Zumo32U4Encoders encoder;
 Zumo32U4Motors motors;
 Zumo32U4OLED display;
@@ -363,7 +362,7 @@ void turnDeg(int x, int y) // x er antal rotasjoner, y er vinkel
 
 int lineSensorRead() //returrner linjesensor data
 {
-    static uint32_t lineSensorVal[5]; // lager en variable med like mange indekser som det er sensorer
+    static int lineSensorVal[5]; // lager en variable med like mange indekser som det er sensorer
     int error = map(lineSensors.readLine(lineSensorVal), 0, 4000, -2000, 2000); //linjesensoren returnerer verdi fra 0 til 4000, 
     return error;                                                     //med 2000 som midt punkt, her ednrers det til -2000 til 2000 med 0 som midtpunkt
 }

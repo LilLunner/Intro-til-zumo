@@ -7,7 +7,7 @@ Zumo32U4ButtonB buttonB;
 Zumo32U4ButtonC buttonC;
 Zumo32U4OLED display;
 Zumo32U4IMU imu;
-Zumo32U4LineSensors l ineSensors;
+Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
 int deg90 = 90;
 int v;
