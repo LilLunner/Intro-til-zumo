@@ -52,7 +52,7 @@ void circle()
 {
     uint32_t circleMillis = millis();
     motors.setSpeeds(200, 100);
-    while (millis() - circleMillis < 5000)
+    while (millis() - circleMillis < 5000) //Kjører sirklbevegelsen til bilen har gått en runde.
         showProxA();
 }
 
@@ -67,7 +67,7 @@ void zigzag()
         if (x == 0)
         {
             motors.setSpeeds(200, 100);
-            if ((int32_t)turnAngle >= turnAngle1 * 179)
+            if ((int32_t)turnAngle >= turnAngle1 * 179) //Sjekker om bilen har beveget seg i en halvsirkel
             {
                 i++;
                 zigzagMillis = millis();

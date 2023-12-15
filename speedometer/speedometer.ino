@@ -88,10 +88,10 @@ void SpeedValues() // Oppdaterer alle hastighetsrelaterte verdiene hvert sekund 
     {
 
         static bool x = 1;
-        DistancePerSecond();
+        DistancePerSecond(); //Oppdaterer en verdi i arrayet.
         totalDistance();
         cMillis = millis();
-        if (millis() - bMillis >= 3000) {
+        if (millis() - bMillis >= 3000) { //Batteriet oppdateres hvert tredje sekund.
             BatteryHealthCheck();
             bMillis = millis();
         }
@@ -379,7 +379,7 @@ int lineSensorRead() //returrner linjesensor data
 void lineFollowPID(int pos) //Linjefølging med PID
 { // tar inn posisjonen
     static int prevPos;
-    int correction = pos / 4 + 6 * (pos - prevPos); // kilde https://github.com/pololu/zumo-32u4-arduino-library/blob/master/examples/LineAndProximitySensors/LineAndProximitySensors.ino 
+    int correction = pos / 4 + 6 * (pos - prevPos); // kilde 2 
     prevPos = pos;
     int lSpeed = topSpeed + correction;      // farten på venstre side lik topSpeed + correction
     int rSpeed = topSpeed - correction;      // farten på høgre side lik topspeed - correction
