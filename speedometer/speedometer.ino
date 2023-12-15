@@ -42,17 +42,17 @@ void DistancePerSecond() // Oppdaterer en indeks i et 60 tall langt array som m√
     arraySum = arraySum + SpeedArray[arrayIndex];
 }
 
-void totalDistance() // Regner ut totaldistanse.
+void totalDistance() // Regner ut totaldistanse. Kalles hver gang fartsarrayet oppdateres.
 {
     totDis = totDis + SpeedArray[arrayIndex];
 }
 
-int averageSpeed() // regner ut gjennomsnittshastighet.
+int averageSpeed() // Regner ut gjennomsnittshastighet.
 {
     int arrayValuesCounter;
     for (int i = 0; i < 60; i++)
     {
-        if (SpeedArray[i] != 0)
+        if (SpeedArray[i] != 0) //Deler kun p√• antall arrayelement som ikke er 0.
             arrayValuesCounter++;
     }
     int average = arraySum / arrayValuesCounter;
