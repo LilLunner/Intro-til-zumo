@@ -88,19 +88,19 @@ void SpeedValues() // Oppdaterer alle hastighetsrelaterte verdiene hvert sekund 
     {
 
         static bool x = 1;
-        DistancePerSecond(); //Oppdaterer en verdi i arrayet.
+        DistancePerSecond(); //Oppdaterer en verdi i arrayet og resetter tellingen av motorrotasjoner.
         totalDistance();
         cMillis = millis();
         if (millis() - bMillis >= 3000) { //Batteriet oppdateres hvert tredje sekund.
             BatteryHealthCheck();
             bMillis = millis();
         }
-        if (x == 1 && SpeedArray[arrayIndex] != 0)
+        if (x == 1 && SpeedArray[arrayIndex] != 0) //Setter første distansemåling som makshastighet så batteriet vil oppføre seg normalt fra start.
         {
             maxSpeed = SpeedArray[arrayIndex];
             x = 0;
         }
-        if (millis() - mMillis >= 60000)
+        if (millis() - mMillis >= 60000) //Regner ut makshastighet hvert minutt.
         {
             highestSpeed();
             mMillis = millis();
