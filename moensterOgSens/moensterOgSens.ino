@@ -1,4 +1,3 @@
-#include <Wire.h>
 #include <Zumo32U4.h>
 
 Zumo32U4Motors motors;
@@ -61,14 +60,14 @@ void zigzag()
 {
     bool x = 0;
     uint32_t zigzagMillis = millis();
-    for (int i = 0; i <= 3; i)
+    for (int i = 0; i <= 2; i)
     {
         turnSensorUpdate();
         showProxA();
         if (x == 0)
         {
             motors.setSpeeds(200, 100);
-            if ((int32_t) turnAngle >= turnAngle1*deg90) 
+            if ((int32_t) turnAngle >= turnAngle1*179) 
             {
                 i++;
                 zigzagMillis = millis();
@@ -79,7 +78,7 @@ void zigzag()
         else
         {
             motors.setSpeeds(100, 200);
-           if ((int32_t) turnAngle >= turnAngle1*deg90) 
+           if ((int32_t) turnAngle >= turnAngle1*179) 
             {
                 i++;
                 zigzagMillis = millis();
