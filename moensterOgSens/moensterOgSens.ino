@@ -7,9 +7,10 @@ Zumo32U4ButtonB buttonB;
 Zumo32U4ButtonC buttonC;
 Zumo32U4OLED display;
 Zumo32U4IMU imu;
-Zumo32U4LineSensors lineSensors;
+Zumo32U4LineSensors l ineSensors;
 Zumo32U4ProximitySensors proxSensors;
 int deg90 = 90;
+int v;
 
 #include "TurnSensor.h"
 
@@ -50,26 +51,44 @@ void square()
 
 void circle()
 {
-    static uint32_t circleMillis = millis();
+    uint32_t circleMillis = millis();
     motors.setSpeeds(200, 100);
-    if (millis() - circleMillis >= 5000)
-    {
-        motors.setSpeeds(0, 0);
-        circleMillis = millis(); // last 2 lines can be replaced with break in a switch case
-    }
+    while (millis() - circleMillis < 6000)
+        showProxA();
 }
 
 void zigzag()
 {
-    static uint32_t zigzagMillis = millis();
-    if (millis() - zigzagMillis >= 2300)
+    bool x = 0;
+    uint32_t zigzagMillis = millis();
+    for (int i = 0; i <= 3; i)
     {
-        motors.setSpeeds(100, 200);
-        if (millis() - zigzagMillis >= 4600)
-            zigzagMillis = millis();
+        turnSensorUpdate();
+        showProxA();
+        if (x == 0)
+        {
+            motors.setSpeeds(200, 100);
+            if ((int32_t) turnAngle >= turnAngle1*deg90) 
+            {
+                i++;
+                zigzagMillis = millis();
+                x = !x;
+                turnSensorReset();  
+            }
+        }
+        else
+        {
+            motors.setSpeeds(100, 200);
+           if ((int32_t) turnAngle >= turnAngle1*deg90) 
+            {
+                i++;
+                zigzagMillis = millis();
+                x = !x;
+                turnSensorReset();  
+            }
+        }
+        
     }
-    else
-        motors.setSpeeds(200, 100);       
 }
 
 int sumProx()
@@ -123,27 +142,56 @@ void showProxA()
     }
 }
 
-void pressA() {
+void pressA()
+{
     if (buttonA.isPressed())
-        square();
+        v = 1;
 }
 
-void pressB() {
+void pressB()
+{
     if (buttonB.isPressed())
-        circle();
+        v = 2;
 }
 
-void pressC() {
+void pressC()
+{
     if (buttonC.isPressed())
-        zigzag();
+        v = 3;
 }
 
-void Interface() {
+void Interface()
+{
     display.print("Press A for square.");
-    display.gotoXY(0,2);
+    display.gotoXY(0, 2);
     display.print("Press B for circle.");
-    display.gotoXY(0,4);
+    display.gotoXY(0, 4);
     display.print("Press C for slalom.");
+}
+
+void patterns()
+{
+    pressA();
+    pressB();
+    pressC();
+    switch (v)
+    {
+    case 0:
+        motors.setSpeeds(0, 0);
+        break;
+    case 1:
+        square();
+        v = 0;
+        break;
+    case 2:
+        circle();
+        v = 0;
+        break;
+    case 3:
+        zigzag();
+        v = 0;
+        break;
+    }
 }
 
 void setup()
@@ -158,8 +206,6 @@ void setup()
 
 void loop()
 {
-    pressA();
-    pressB();
-    pressC();
+    patterns();
     showProxA();
 }
